@@ -173,8 +173,10 @@ class Database:
         if cursor.fetchone()[0] == 0:
             cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('bike', 50))
             cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('car', 30))
-            
-            # Initialize individual parking spots
+        
+        # Initialize individual parking spots if empty
+        cursor.execute('SELECT COUNT(*) FROM parking_spots')
+        if cursor.fetchone()[0] == 0:
             self._initialize_parking_spots(cursor)
         
         # Initialize default admin (independent of parking slots)
