@@ -267,6 +267,13 @@
         <div class="container text-center">
             <h1><i class="fas fa-camera"></i> QR Code Scanner</h1>
             <p class="mb-0">Verify vehicle entry and exit</p>
+            
+            <!-- HTTPS Warning for localhost -->
+            <div id="httpsWarning" class="alert alert-warning mt-3" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Camera Access Issue:</strong> For camera access, use HTTPS or localhost. 
+                In production, ensure your site uses HTTPS.
+            </div>
         </div>
     </div>
 
@@ -312,17 +319,44 @@
 
         <!-- Manual Input -->
         <div class="manual-input">
-            <h5><i class="fas fa-keyboard"></i> Manual Input</h5>
-            <p class="text-muted">Alternatively, enter the booking ID manually</p>
-            <div class="row">
+            <h5><i class="fas fa-keyboard"></i> Alternative Input Methods</h5>
+            
+            <!-- Manual Booking ID Input -->
+            <div class="row mb-3">
                 <div class="col-md-8">
-                    <input type="text" id="manualBookingId" class="form-control" placeholder="Enter Booking ID (e.g., AB12CD34EF56)">
+                    <label for="manualBookingId" class="form-label">Manual Booking ID Entry:</label>
+                    <input type="text" id="manualBookingId" class="form-control" 
+                           placeholder="Enter Booking ID (e.g., AB12CD34EF56)"
+                           style="font-family: monospace;">
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
                     <button id="manualVerifyBtn" class="btn btn-scanner w-100">
                         <i class="fas fa-check"></i> Verify
                     </button>
                 </div>
+            </div>
+
+            <!-- File Upload for QR Image -->
+            <div class="row">
+                <div class="col-md-8">
+                    <label for="qrImageUpload" class="form-label">Upload QR Code Image:</label>
+                    <input type="file" id="qrImageUpload" class="form-control" 
+                           accept="image/*" capture="environment">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button id="uploadVerifyBtn" class="btn btn-scanner w-100" disabled>
+                        <i class="fas fa-upload"></i> Scan Image
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-muted mt-2">
+                <small>
+                    <i class="fas fa-info-circle"></i>
+                    If camera doesn't work, use manual entry or upload a photo of the QR code
+                </small>
             </div>
         </div>
 
@@ -367,34 +401,111 @@
 
         async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera API not supported in this browser');
+                }
+
+                // Try different camera configurations
+                let constraints = [
+                    { video: { facingMode: 'environment' } }, // Back camera (mobile)
+                    { video: { facingMode: 'user' } },        // Front camera
+                    { video: true }                           // Any camera
+                ];
+
+                let stream = null;
+                let lastError = null;
+
+                for (let constraint of constraints) {
+                    try {
+                        updateStatus('Requesting camera access...', 'scanning');
+                        stream = await navigator.mediaDevices.getUserMedia(constraint);
+                        break;
+                    } catch (err) {
+                        lastError = err;
+                        console.log(`Failed with constraint ${JSON.stringify(constraint)}:`, err);
+                    }
+                }
+
+                if (!stream) {
+                    throw lastError || new Error('Could not access camera');
+                }
+
                 video.srcObject = stream;
+                window.currentStream = stream; // Store for cleanup
+
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     scanning = true;
                     scanQR();
-                    updateStatus('Scanning for QR code...', 'scanning');
+                    updateStatus('Camera started. Scanning for QR code...', 'scanning');
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
                 };
+
+                video.onerror = (err) => {
+                    console.error('Video error:', err);
+                    updateStatus('Error loading video stream', 'error');
+                };
+
             } catch (err) {
                 console.error('Error accessing camera:', err);
-                updateStatus('Error accessing camera. Please check permissions.', 'error');
+                let errorMessage = 'Camera access failed. ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Permission denied. Please allow camera access and try again.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No camera found. Please connect a camera.';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMessage += 'Camera not supported in this browser.';
+                } else if (err.name === 'NotReadableError') {
+                    errorMessage += 'Camera is being used by another application.';
+                } else {
+                    errorMessage += err.message || 'Unknown error occurred.';
+                }
+                
+                updateStatus(errorMessage, 'error');
+                showCameraHelp();
             }
         }
 
         function stopCamera() {
             scanning = false;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+            if (window.currentStream) {
+                window.currentStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log('Camera track stopped:', track);
+                });
                 video.srcObject = null;
+                window.currentStream = null;
             }
             updateStatus('Camera stopped. Click "Start Camera" to begin scanning.', 'waiting');
             startBtn.disabled = false;
             stopBtn.disabled = true;
+        }
+
+        function showCameraHelp() {
+            const helpHtml = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Camera Troubleshooting:</h6>
+                    <ul class="mb-2">
+                        <li><strong>HTTPS Required:</strong> Camera access requires HTTPS or localhost</li>
+                        <li><strong>Browser Permissions:</strong> Click the camera icon in address bar to allow access</li>
+                        <li><strong>Privacy Settings:</strong> Check browser camera permissions in Settings</li>
+                        <li><strong>Other Apps:</strong> Close other apps that might be using the camera</li>
+                        <li><strong>Mobile:</strong> Try refreshing the page or restarting the browser</li>
+                    </ul>
+                    <div class="text-center">
+                        <button class="btn btn-sm btn-outline-primary" onclick="startCamera()">
+                            <i class="fas fa-retry"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerHTML = helpHtml;
         }
 
         function scanQR() {
@@ -550,7 +661,105 @@
         // Clear manual input when successful
         document.addEventListener('DOMContentLoaded', () => {
             updateStatus(`Ready to scan for ${currentAction}...`);
+            checkCameraSupport();
         });
+
+        async function checkCameraSupport() {
+            // Check if we're on HTTP (not HTTPS or localhost)
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                document.getElementById('httpsWarning').style.display = 'block';
+                updateStatus('Camera requires HTTPS. Use manual input or upload image instead.', 'error');
+                startBtn.disabled = true;
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                updateStatus('Camera not supported in this browser. Use manual input below.', 'error');
+                startBtn.disabled = true;
+                return;
+            }
+
+            try {
+                // Check camera permissions
+                const permissions = await navigator.permissions.query({ name: 'camera' });
+                
+                if (permissions.state === 'denied') {
+                    updateStatus('Camera permission denied. Please enable camera access in browser settings.', 'error');
+                    showCameraHelp();
+                } else if (permissions.state === 'prompt') {
+                    updateStatus('Click "Start Camera" to request camera access.', 'waiting');
+                } else {
+                    updateStatus('Camera ready. Click "Start Camera" to begin scanning.', 'waiting');
+                }
+            } catch (err) {
+                console.log('Permission API not supported:', err);
+                updateStatus('Click "Start Camera" to test camera access.', 'waiting');
+            }
+        }
+
+        // Enhanced manual input with Enter key support
+        document.getElementById('manualBookingId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('manualVerifyBtn').click();
+            }
+        });
+
+        // File upload QR scanning
+        const qrImageUpload = document.getElementById('qrImageUpload');
+        const uploadVerifyBtn = document.getElementById('uploadVerifyBtn');
+
+        qrImageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadVerifyBtn.disabled = false;
+                uploadVerifyBtn.textContent = 'Scan Image';
+            } else {
+                uploadVerifyBtn.disabled = true;
+                uploadVerifyBtn.innerHTML = '<i class="fas fa-upload"></i> Scan Image';
+            }
+        });
+
+        uploadVerifyBtn.addEventListener('click', () => {
+            const file = qrImageUpload.files[0];
+            if (file) {
+                scanImageForQR(file);
+            }
+        });
+
+        function scanImageForQR(file) {
+            updateStatus('Processing image...', 'scanning');
+            uploadVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            uploadVerifyBtn.disabled = true;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Create canvas for image processing
+                    const imageCanvas = document.createElement('canvas');
+                    const imageCtx = imageCanvas.getContext('2d');
+                    
+                    imageCanvas.width = img.width;
+                    imageCanvas.height = img.height;
+                    imageCtx.drawImage(img, 0, 0);
+                    
+                    const imageData = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        updateStatus('QR Code found in image! Verifying...', 'scanning');
+                        verifyQR(code.data);
+                    } else {
+                        updateStatus('No QR code found in image. Try a clearer photo.', 'error');
+                    }
+                    
+                    uploadVerifyBtn.innerHTML = '<i class="fas fa-upload"></i> Scan Image';
+                    uploadVerifyBtn.disabled = false;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
     </script>
 </body>
 </html>
