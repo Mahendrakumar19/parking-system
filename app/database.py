@@ -1,55 +1,23 @@
 import sqlite3
-import os
 from datetime import datetime
+import os
 
 class Database:
     def __init__(self, db_path='parking.db'):
-        self.database_url = os.environ.get('DATABASE_URL')
-        if self.database_url:
-            # Production: Use PostgreSQL
-            import psycopg2
-            self.is_postgres = True
-            # Fix Railway's postgres:// URL to postgresql://
-            if self.database_url.startswith('postgres://'):
-                self.database_url = self.database_url.replace('postgres://', 'postgresql://', 1)
-        else:
-            # Development: Use SQLite
-            self.db_path = db_path
-            self.is_postgres = False
+        self.db_path = db_path
         self.init_database()
     
     def get_connection(self):
-        if self.is_postgres:
-            import psycopg2
-            return psycopg2.connect(self.database_url)
-        else:
-            return sqlite3.connect(self.db_path)
-    
-    def get_auto_increment_sql(self):
-        """Get the correct auto-increment SQL for the database type"""
-        if self.is_postgres:
-            return "SERIAL PRIMARY KEY"
-        else:
-            return "INTEGER PRIMARY KEY AUTOINCREMENT"
-    
-    def get_timestamp_sql(self):
-        """Get the correct timestamp SQL for the database type"""
-        if self.is_postgres:
-            return "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-        else:
-            return "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+        return sqlite3.connect(self.db_path)
     
     def init_database(self):
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        auto_inc = self.get_auto_increment_sql()
-        timestamp = self.get_timestamp_sql()
-        
         # Users table
-        cursor.execute(f'''
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
-                id {auto_inc},
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 mobile TEXT NOT NULL,
@@ -57,7 +25,7 @@ class Database:
                 department TEXT NOT NULL,
                 university_id TEXT NOT NULL,
                 email TEXT NOT NULL,
-                created_at {timestamp}
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         

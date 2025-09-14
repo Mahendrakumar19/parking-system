@@ -5,11 +5,10 @@ import io
 import base64
 import json
 import uuid
-import os
 from database import Database
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+app.secret_key = 'your-secret-key-here'
 
 # Initialize database
 db = Database()
@@ -599,6 +598,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') != 'production'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    app.run(debug=True)
