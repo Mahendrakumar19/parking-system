@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Registration Success - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-card">
+        <h2>Registration Successful!</h2>
+        <p>Your account has been created successfully.</p>
+        
+        <div class="user-id-display">
+            <label>Your unique User ID:</label>
+            <div class="user-id">{{ user_id }}</div>
+            <small>Please save this User ID - you'll need it to login</small>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login Now</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Go to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

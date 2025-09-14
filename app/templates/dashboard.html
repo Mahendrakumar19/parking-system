@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Welcome, {{ user_name }}!</h2>
+    
+    {% if pending_fines > 0 %}
+    <div class="alert alert-warning">
+        <strong>Pending Fines: ₹{{ pending_fines }}</strong>
+        <p>You have pending fines that must be paid with your next booking.</p>
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-actions">
+        {% if active_booking %}
+        <div class="active-booking-card">
+            <h3>Current Active Booking</h3>
+            <p><strong>Vehicle:</strong> {{ active_booking[3] }} ({{ active_booking[4] }})</p>
+            <p><strong>Entry Time:</strong> {{ active_booking[5] }}</p>
+            <p><strong>Exit Time:</strong> {{ active_booking[6] }}</p>
+            <div class="booking-actions">
+                <button class="btn btn-warning" onclick="extendBooking('{{ active_booking[1] }}')">Extend Time</button>
+                <button class="btn btn-info" onclick="showQRCode('{{ active_booking[11] }}')">Show QR Code</button>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="action-cards">
+            <div class="action-card">
+                <h3>New Booking</h3>
+                <p>Book a new parking slot</p>
+                <a href="{{ url_for('book') }}" class="btn btn-primary">Book Now</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>Transaction History</h3>
+                <p>View all your payments and bookings</p>
+                <a href="{{ url_for('transactions') }}" class="btn btn-info">View Transactions</a>
+            </div>
+            
+            {% if active_booking %}
+            <div class="action-card">
+                <h3>Current Booking</h3>
+                <p>Manage your active booking</p>
+                <button class="btn btn-secondary" onclick="showBookingDetails()">View Details</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if bookings %}
+    <div class="recent-bookings">
+        <h3>Recent Bookings</h3>
+        <table class="bookings-table">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Vehicle</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking[1] }}</td>
+                    <td>{{ booking[3] }} ({{ booking[4] }})</td>
+                    <td>{{ booking[5] }}</td>
+                    <td>{{ booking[6] }}</td>
+                    <td>₹{{ booking[8] }}</td>
+                    <td class="status-{{ booking[10] }}">{{ booking[10] }}</td>
+                    <td>
+                        {% if booking[10] == 'active' or booking[10] == 'booked' %}
+                        <div class="booking-row-actions">
+                            <button class="btn btn-small btn-warning" onclick="extendBooking('{{ booking[1] }}')">Extend</button>
+                            <button class="btn btn-small btn-info" onclick="showQRCode('{{ booking[11] }}')">QR Code</button>
+                        </div>
+                        {% elif booking[10] == 'completed' %}
+                        <span class="text-muted">Completed</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Your QR Code</h3>
+        <div id="qrCodeDisplay"></div>
+        <p>Scan this QR code at the entry/exit gate</p>
+    </div>
+</div>
+
+<!-- Extend Booking Modal -->
+<div id="extendModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Extend Booking</h3>
+        <form id="extendForm">
+            <div class="form-group">
+                <label for="additionalHours">Additional Hours:</label>
+                <select id="additionalHours" name="hours" required>
+                    <option value="1">1 Hour</option>
+                    <option value="2">2 Hours</option>
+                    <option value="3">3 Hours</option>
+                    <option value="4">4 Hours</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Extend Booking</button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

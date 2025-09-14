@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="transactions-container">
+    <h2>💳 Transaction History</h2>
+    
+    <div class="transactions-summary">
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Spent</h3>
+                <p class="amount">₹{{ total_spent }}</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Transactions</h3>
+                <p class="count">{{ transaction_count }}</p>
+            </div>
+            <div class="summary-card">
+                <h3>Pending Fines</h3>
+                <p class="amount fine-amount">₹{{ pending_fines }}</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if transactions %}
+    <div class="transactions-list">
+        <h3>Recent Transactions</h3>
+        <div class="transactions-table-container">
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Type</th>
+                        <th>Booking ID</th>
+                        <th>Parking</th>
+                        <th>Fines</th>
+                        <th>Extension</th>
+                        <th>Total</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td class="transaction-id">{{ transaction[1] }}</td>
+                        <td>
+                            <span class="transaction-type type-{{ transaction[3] }}">
+                                {{ transaction[3]|title }}
+                            </span>
+                        </td>
+                        <td class="booking-id">{{ transaction[2] or '-' }}</td>
+                        <td class="amount">₹{{ "%.0f"|format(transaction[4]) if transaction[4] > 0 else '-' }}</td>
+                        <td class="amount">₹{{ "%.0f"|format(transaction[5]) if transaction[5] > 0 else '-' }}</td>
+                        <td class="amount">₹{{ "%.0f"|format(transaction[6]) if transaction[6] > 0 else '-' }}</td>
+                        <td class="amount total-amount">₹{{ "%.0f"|format(transaction[7]) }}</td>
+                        <td class="date">{{ transaction[12][:10] }}</td>
+                        <td>
+                            <span class="status status-{{ transaction[10] }}">
+                                {{ transaction[10]|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="no-transactions">
+        <h3>No transactions found</h3>
+        <p>You haven't made any parking bookings yet.</p>
+        <a href="{{ url_for('book') }}" class="btn btn-primary">Book Your First Slot</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.transactions-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.transactions-summary {
+    margin-bottom: 30px;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    border-left: 5px solid #3498db;
+}
+
+.summary-card h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.summary-card .amount {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #27ae60;
+    margin: 0;
+}
+
+.summary-card .count {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3498db;
+    margin: 0;
+}
+
+.fine-amount {
+    color: #e74c3c !important;
+}
+
+.transactions-list {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.transactions-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.transactions-table th,
+.transactions-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.transactions-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #2c3e50;
+    position: sticky;
+    top: 0;
+}
+
+.transaction-id, .booking-id {
+    font-family: monospace;
+    font-size: 0.9rem;
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.transaction-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.type-booking {
+    background: #d4edda;
+    color: #155724;
+}
+
+.type-extension {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.type-fine {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.amount {
+    text-align: right;
+    font-weight: bold;
+}
+
+.total-amount {
+    color: #27ae60;
+    font-size: 1.1em;
+}
+
+.date {
+    white-space: nowrap;
+}
+
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.no-transactions {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.no-transactions h3 {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.no-transactions p {
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .transactions-table {
+        font-size: 0.85rem;
+    }
+    
+    .transactions-table th,
+    .transactions-table td {
+        padding: 8px;
+    }
+}
+</style>
+{% endblock %}

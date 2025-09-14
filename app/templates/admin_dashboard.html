@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - University Parking Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-icon {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .action-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .recent-logs {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .log-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-radius: 15px 15px 0 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .log-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-info {
+            flex: 1;
+        }
+
+        .log-action {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .log-action.entry {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .log-action.exit {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .log-time {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #667eea !important;
+        }
+
+        .refresh-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 1rem 0;
+            }
+
+            .stats-card {
+                padding: 1rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .action-card {
+                padding: 1rem;
+            }
+
+            .action-icon {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-shield-alt"></i> Admin Portal
+            </span>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-link">
+                    <span class="status-indicator status-online"></span>
+                    {{ admin_name }} ({{ admin_role|title }})
+                </span>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="admin-title">
+                <div class="admin-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p class="mb-0">QR Code Verification & Parking Management System</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="stats-card">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ entry_count }}</span>
+                        <div class="stat-label">
+                            <i class="fas fa-sign-in-alt"></i> Today's Entries
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ exit_count }}</span>
+                        <div class="stat-label">
+                            <i class="fas fa-sign-out-alt"></i> Today's Exits
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ entry_count - exit_count }}</span>
+                        <div class="stat-label">
+                            <i class="fas fa-car"></i> Currently Parked
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h5 class="action-title">QR Scanner</h5>
+                    <p class="action-description">
+                        Scan QR codes for vehicle entry and exit verification
+                    </p>
+                    <a href="{{ url_for('admin_scanner') }}" class="btn btn-action">
+                        <i class="fas fa-camera"></i> Open Scanner
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h5 class="action-title">Entry/Exit Logs</h5>
+                    <p class="action-description">
+                        View detailed logs of all vehicle movements and verifications
+                    </p>
+                    <a href="{{ url_for('admin_logs') }}" class="btn btn-action">
+                        <i class="fas fa-list"></i> View Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-logs">
+            <div class="log-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> Recent Activity
+                    <span id="refreshIndicator" class="refresh-indicator" style="display: none;">
+                        <i class="fas fa-sync-alt"></i>
+                    </span>
+                </h5>
+            </div>
+            
+            <div id="recentLogs">
+                {% if recent_logs %}
+                    {% for log in recent_logs[:10] %}
+                    <div class="log-item">
+                        <div class="log-info">
+                            <div>
+                                <strong>{{ log.user_name }}</strong> - {{ log.vehicle_number }} ({{ log.vehicle_type|title }})
+                                {% if log.spot_number %}
+                                <span class="badge bg-secondary">{{ log.spot_number }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="log-time">
+                                {{ log.timestamp }} by {{ log.admin_name }}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="log-action {{ log.action_type }}">
+                                {% if log.action_type == 'entry' %}
+                                <i class="fas fa-sign-in-alt"></i> Entry
+                                {% else %}
+                                <i class="fas fa-sign-out-alt"></i> Exit
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="log-item">
+                    <div class="text-muted text-center">
+                        <i class="fas fa-info-circle"></i> No recent activity
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh recent logs every 30 seconds
+        function refreshLogs() {
+            const refreshIndicator = document.getElementById('refreshIndicator');
+            refreshIndicator.style.display = 'inline-block';
+            
+            fetch('/admin/logs')
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the response and update only the logs section
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newLogs = doc.querySelector('#recentLogs');
+                    if (newLogs) {
+                        document.getElementById('recentLogs').innerHTML = newLogs.innerHTML;
+                    }
+                })
+                .catch(error => console.error('Error refreshing logs:', error))
+                .finally(() => {
+                    refreshIndicator.style.display = 'none';
+                });
+        }
+
+        // Refresh logs every 30 seconds
+        setInterval(refreshLogs, 30000);
+
+        // Update timestamp display
+        function updateTimestamps() {
+            const timestamps = document.querySelectorAll('.log-time');
+            timestamps.forEach(timestamp => {
+                const timeText = timestamp.textContent;
+                // Could add relative time formatting here
+            });
+        }
+
+        setInterval(updateTimestamps, 60000);
+    </script>
+</body>
+</html>

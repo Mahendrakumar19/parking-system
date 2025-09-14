@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}QR Scanner - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>QR Code Scanner</h2>
+    <p>This is a simulation of the parking gate scanner.</p>
+    
+    <div class="scanner-section">
+        <h3>Scan QR Code</h3>
+        <textarea id="qrInput" placeholder="Paste QR code data here for testing" rows="4" style="width: 100%; margin: 10px 0;"></textarea>
+        
+        <div class="scanner-buttons">
+            <button onclick="simulateEntry()" class="btn btn-primary">Simulate Entry Scan</button>
+            <button onclick="simulateExit()" class="btn btn-secondary">Simulate Exit Scan</button>
+        </div>
+    </div>
+    
+    <div id="scanResult" style="margin-top: 20px;"></div>
+</div>
+
+<script>
+function simulateEntry() {
+    const qrData = document.getElementById('qrInput').value.trim();
+    if (!qrData) {
+        alert('Please enter QR code data');
+        return;
+    }
+    
+    try {
+        const parsedData = JSON.parse(qrData);
+        
+        fetch('/scan_entry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ qr_data: parsedData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('scanResult');
+            if (data.success) {
+                resultDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('scanResult').innerHTML = 
+                '<div class="alert alert-danger">Error processing entry scan</div>';
+        });
+    } catch (e) {
+        alert('Invalid QR code format');
+    }
+}
+
+function simulateExit() {
+    const qrData = document.getElementById('qrInput').value.trim();
+    if (!qrData) {
+        alert('Please enter QR code data');
+        return;
+    }
+    
+    try {
+        const parsedData = JSON.parse(qrData);
+        
+        fetch('/scan_exit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ qr_data: parsedData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('scanResult');
+            if (data.success) {
+                resultDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('scanResult').innerHTML = 
+                '<div class="alert alert-danger">Error processing exit scan</div>';
+        });
+    } catch (e) {
+        alert('Invalid QR code format');
+    }
+}
+</script>
+
+<style>
+.scanner-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.scanner-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin: 10px 0;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
+{% endblock %}

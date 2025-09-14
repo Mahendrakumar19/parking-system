@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Success - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-card">
+        <h2>🎉 Booking Successful!</h2>
+        
+        <div class="booking-summary">
+            <h3>📋 Booking Summary</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <label>Booking ID:</label>
+                    <span class="booking-id">{{ booking_id }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Transaction ID:</label>
+                    <span class="transaction-id">{{ transaction_id }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Vehicle:</label>
+                    <span>{{ vehicle_number }} ({{ vehicle_type|title }})</span>
+                </div>
+                <div class="summary-item">
+                    <label>Duration:</label>
+                    <span>{{ "%.1f"|format(duration) }} hours</span>
+                </div>
+                <div class="summary-item">
+                    <label>Entry Time:</label>
+                    <span>{{ entry_time }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Exit Time:</label>
+                    <span>{{ exit_time }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Available Slots:</label>
+                    <span>{{ available_slots }} remaining</span>
+                </div>
+                <div class="summary-item assigned-spot">
+                    <label>🅿️ Assigned Parking Spot:</label>
+                    <span class="spot-number">{{ spot_number }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>📍 Zone:</label>
+                    <span>Zone {{ zone }} - Floor {{ floor_level }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parking-directions">
+            <h3>🗺️ Parking Instructions</h3>
+            <div class="directions-content">
+                <div class="spot-highlight">
+                    <h4>Your Reserved Spot: <span class="spot-badge">{{ spot_number }}</span></h4>
+                    <p><strong>Location:</strong> Zone {{ zone }}, Floor {{ floor_level }}</p>
+                </div>
+                <div class="directions-list">
+                    <h4>How to reach your spot:</h4>
+                    <ol>
+                        <li>Scan QR code at the entry gate</li>
+                        <li>Follow signs to <strong>Zone {{ zone }}</strong></li>
+                        {% if floor_level > 1 %}
+                        <li>Take elevator/stairs to <strong>Floor {{ floor_level }}</strong></li>
+                        {% endif %}
+                        <li>Look for spot number <strong>{{ spot_number }}</strong></li>
+                        <li>Park only in your assigned spot</li>
+                    </ol>
+                </div>
+                <div class="important-note">
+                    <p><strong>⚠️ Important:</strong> Your vehicle must be parked only in spot {{ spot_number }}. Parking in any other spot may result in fines.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pricing-breakdown">
+            <h3>💰 Payment Breakdown</h3>
+            <div class="pricing-table">
+                <div class="pricing-row">
+                    <span>Parking Charges:</span>
+                    <span>{{ "%.1f"|format(duration) }} hours × ₹{{ 20 if vehicle_type == 'bike' else 30 }}</span>
+                    <span class="amount">₹{{ "%.0f"|format(parking_amount) }}</span>
+                </div>
+                {% if pending_fines > 0 %}
+                <div class="pricing-row fine-row">
+                    <span>Pending Fines:</span>
+                    <span>Previous violations</span>
+                    <span class="amount">₹{{ "%.0f"|format(pending_fines) }}</span>
+                </div>
+                {% endif %}
+                <div class="pricing-row total-row">
+                    <span><strong>Total Paid:</strong></span>
+                    <span></span>
+                    <span class="amount total"><strong>₹{{ "%.0f"|format(total_amount) }}</strong></span>
+                </div>
+            </div>
+            
+            {% if pending_fines > 0 %}
+            <div class="fine-notice">
+                <p>✅ All pending fines have been cleared with this payment.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="qr-code-section">
+            <h3>📱 Your QR Code</h3>
+            <div class="qr-code">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+            </div>
+            <div class="qr-instructions">
+                <p><strong>Important Instructions:</strong></p>
+                <ul>
+                    <li>Save or screenshot this QR code</li>
+                    <li>Scan at entry gate to enter parking</li>
+                    <li>Scan the same QR code at exit gate when leaving</li>
+                    <li>Keep QR code accessible throughout your parking duration</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="transaction-details">
+            <h3>📄 Transaction Details</h3>
+            <div class="transaction-info">
+                <p><strong>Payment Method:</strong> Cash</p>
+                <p><strong>Transaction Status:</strong> <span class="status-completed">Completed</span></p>
+                <p><strong>Transaction Time:</strong> <span id="currentDateTime"></span></p>
+                <p><strong>Receipt Number:</strong> {{ transaction_id }}</p>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+            <button onclick="window.print()" class="btn btn-secondary">Print Receipt</button>
+            <button onclick="downloadReceipt()" class="btn btn-info">Download Receipt</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set current date and time
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    }) + ', ' + now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    document.getElementById('currentDateTime').textContent = formattedDate;
+});
+
+function downloadReceipt() {
+    // Create a simplified receipt content
+    const receiptContent = `
+UNIVERSITY PARKING RECEIPT
+=========================
+Booking ID: {{ booking_id }}
+Transaction ID: {{ transaction_id }}
+Vehicle: {{ vehicle_number }} ({{ vehicle_type|title }})
+Duration: {{ "%.1f"|format(duration) }} hours
+Entry: {{ entry_time }}
+Exit: {{ exit_time }}
+
+PAYMENT BREAKDOWN:
+Parking Charges: ₹{{ "%.0f"|format(parking_amount) }}
+{% if pending_fines > 0 %}Pending Fines: ₹{{ "%.0f"|format(pending_fines) }}{% endif %}
+Total Paid: ₹{{ "%.0f"|format(total_amount) }}
+
+Status: Completed
+Payment: Cash
+=========================
+Keep this receipt for your records.
+    `;
+    
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `parking_receipt_{{ booking_id }}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+</script>
+
+<style>
+.success-card {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.booking-summary, .pricing-breakdown, .transaction-details {
+    margin: 30px 0;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 5px solid #28a745;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.summary-item label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.booking-id, .transaction-id {
+    font-family: monospace;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.pricing-table {
+    margin-top: 15px;
+}
+
+.pricing-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+    align-items: center;
+}
+
+.pricing-row.fine-row {
+    color: #dc3545;
+}
+
+.pricing-row.total-row {
+    border-top: 2px solid #28a745;
+    border-bottom: 2px solid #28a745;
+    font-size: 1.1em;
+    background: rgba(40, 167, 69, 0.1);
+    margin-top: 10px;
+    padding: 15px 0;
+}
+
+.amount {
+    text-align: right;
+    font-weight: bold;
+}
+
+.amount.total {
+    color: #28a745;
+    font-size: 1.2em;
+}
+
+.fine-notice {
+    margin-top: 15px;
+    padding: 10px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    color: #155724;
+}
+
+.qr-instructions ul {
+    text-align: left;
+    margin: 15px 0;
+}
+
+.qr-instructions li {
+    margin: 8px 0;
+    color: #666;
+}
+
+.transaction-info p {
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status-completed {
+    color: #28a745;
+    font-weight: bold;
+}
+
+@media print {
+    .action-buttons, .nav-container, .footer {
+        display: none !important;
+    }
+    
+    .success-card {
+        box-shadow: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .pricing-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        text-align: center;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+}
+</style>
+{% endblock %}

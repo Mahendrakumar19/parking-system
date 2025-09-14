@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}Live Parking Slots - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="live-slots-container">
+    <div class="header-section">
+        <h2>🔴 Live Parking Status</h2>
+        <p>Real-time parking availability - Updates every 30 seconds</p>
+        <div class="last-updated">
+            Last Updated: <span id="lastUpdated"></span>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="status-summary">
+        <div class="vehicle-section">
+            <h3>🏍️ Bike Parking</h3>
+            <div class="zone-cards" id="bikeZones">
+                {% for zone in bike_status %}
+                <div class="zone-card">
+                    <h4>Zone {{ zone[0] }}</h4>
+                    <div class="zone-stats">
+                        <div class="stat available">
+                            <span class="count">{{ zone[2] }}</span>
+                            <span class="label">Available</span>
+                        </div>
+                        <div class="stat occupied">
+                            <span class="count">{{ zone[3] }}</span>
+                            <span class="label">Occupied</span>
+                        </div>
+                        <div class="stat reserved">
+                            <span class="count">{{ zone[4] }}</span>
+                            <span class="label">Reserved</span>
+                        </div>
+                    </div>
+                    <div class="occupancy-bar">
+                        <div class="bar-fill" style="width: {{ (zone[3] + zone[4]) / zone[1] * 100 }}%"></div>
+                    </div>
+                    <small>{{ zone[1] }} total spots</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="vehicle-section">
+            <h3>🚗 Car Parking</h3>
+            <div class="zone-cards" id="carZones">
+                {% for zone in car_status %}
+                <div class="zone-card">
+                    <h4>Zone {{ zone[0] }}</h4>
+                    <div class="zone-stats">
+                        <div class="stat available">
+                            <span class="count">{{ zone[2] }}</span>
+                            <span class="label">Available</span>
+                        </div>
+                        <div class="stat occupied">
+                            <span class="count">{{ zone[3] }}</span>
+                            <span class="label">Occupied</span>
+                        </div>
+                        <div class="stat reserved">
+                            <span class="count">{{ zone[4] }}</span>
+                            <span class="label">Reserved</span>
+                        </div>
+                    </div>
+                    <div class="occupancy-bar">
+                        <div class="bar-fill" style="width: {{ (zone[3] + zone[4]) / zone[1] * 100 }}%"></div>
+                    </div>
+                    <small>{{ zone[1] }} total spots</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Spot View -->
+    <div class="detailed-view">
+        <div class="view-controls">
+            <button class="btn btn-primary active" onclick="showView('bikes')">Bike Spots</button>
+            <button class="btn btn-secondary" onclick="showView('cars')">Car Spots</button>
+            <button class="btn btn-info" onclick="toggleAutoRefresh()">
+                <span id="refreshStatus">🔄 Auto-Refresh ON</span>
+            </button>
+        </div>
+        
+        <!-- Bike Spots Grid -->
+        <div id="bikeSpots" class="spots-grid">
+            <h3>🏍️ Bike Parking Layout</h3>
+            {% set bike_zones = {} %}
+            {% for spot in bike_spots %}
+                {% if spot[1] not in bike_zones %}
+                    {% set _ = bike_zones.update({spot[1]: []}) %}
+                {% endif %}
+                {% set _ = bike_zones[spot[1]].append(spot) %}
+            {% endfor %}
+            
+            {% for zone, spots in bike_zones.items() %}
+            <div class="zone-section">
+                <h4>Zone {{ zone }}</h4>
+                <div class="spots-container">
+                    {% for spot in spots %}
+                    <div class="spot-card status-{{ spot[4] }} {{ 'occupied' if spot[5] else '' }} {{ 'reserved' if spot[6] else '' }}"
+                         data-spot="{{ spot[0] }}" data-booking="{{ spot[7] or '' }}">
+                        <div class="spot-number">{{ spot[0] }}</div>
+                        <div class="spot-status">
+                            {% if spot[5] %}
+                                <span class="status-occupied">🚗</span>
+                            {% elif spot[6] %}
+                                <span class="status-reserved">📅</span>
+                            {% else %}
+                                <span class="status-available">✅</span>
+                            {% endif %}
+                        </div>
+                        {% if spot[8] and spot[9] %}
+                        <div class="spot-time">
+                            <small>Until: {{ spot[9][:16] }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Car Spots Grid -->
+        <div id="carSpots" class="spots-grid" style="display: none;">
+            <h3>🚗 Car Parking Layout</h3>
+            {% set car_zones = {} %}
+            {% for spot in car_spots %}
+                {% if spot[1] not in car_zones %}
+                    {% set _ = car_zones.update({spot[1]: []}) %}
+                {% endif %}
+                {% set _ = car_zones[spot[1]].append(spot) %}
+            {% endfor %}
+            
+            {% for zone, spots in car_zones.items() %}
+            <div class="zone-section">
+                <h4>Zone {{ zone }}</h4>
+                <div class="spots-container">
+                    {% for spot in spots %}
+                    <div class="spot-card status-{{ spot[4] }} {{ 'occupied' if spot[5] else '' }} {{ 'reserved' if spot[6] else '' }}"
+                         data-spot="{{ spot[0] }}" data-booking="{{ spot[7] or '' }}">
+                        <div class="spot-number">{{ spot[0] }}</div>
+                        <div class="spot-status">
+                            {% if spot[5] %}
+                                <span class="status-occupied">🚗</span>
+                            {% elif spot[6] %}
+                                <span class="status-reserved">📅</span>
+                            {% else %}
+                                <span class="status-available">✅</span>
+                            {% endif %}
+                        </div>
+                        {% if spot[8] and spot[9] %}
+                        <div class="spot-time">
+                            <small>Until: {{ spot[9][:16] }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+        <h4>Legend:</h4>
+        <div class="legend-items">
+            <div class="legend-item">
+                <span class="status-available">✅</span>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <span class="status-reserved">📅</span>
+                <span>Reserved</span>
+            </div>
+            <div class="legend-item">
+                <span class="status-occupied">🚗</span>
+                <span>Occupied</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let autoRefreshEnabled = true;
+let refreshInterval;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateTimestamp();
+    startAutoRefresh();
+});
+
+function updateTimestamp() {
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+}
+
+function showView(type) {
+    // Update buttons
+    document.querySelectorAll('.view-controls .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Show/hide grids
+    if (type === 'bikes') {
+        document.getElementById('bikeSpots').style.display = 'block';
+        document.getElementById('carSpots').style.display = 'none';
+    } else {
+        document.getElementById('bikeSpots').style.display = 'none';
+        document.getElementById('carSpots').style.display = 'block';
+    }
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    const statusSpan = document.getElementById('refreshStatus');
+    
+    if (autoRefreshEnabled) {
+        statusSpan.textContent = '🔄 Auto-Refresh ON';
+        startAutoRefresh();
+    } else {
+        statusSpan.textContent = '⏸️ Auto-Refresh OFF';
+        stopAutoRefresh();
+    }
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    refreshInterval = setInterval(() => {
+        if (autoRefreshEnabled) {
+            refreshLiveData();
+        }
+    }, 30000); // Refresh every 30 seconds
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+}
+
+function refreshLiveData() {
+    fetch('/api/live_status')
+        .then(response => response.json())
+        .then(data => {
+            // Update zone cards and spot grids with new data
+            updateZoneCards(data.status);
+            updateSpotGrids(data.spots);
+            updateTimestamp();
+        })
+        .catch(error => {
+            console.error('Error refreshing data:', error);
+        });
+}
+
+function updateZoneCards(statusData) {
+    // Implementation for updating zone cards with new data
+    console.log('Updating zone cards with:', statusData);
+}
+
+function updateSpotGrids(spotsData) {
+    // Implementation for updating spot grids with new data
+    console.log('Updating spot grids with:', spotsData);
+}
+
+// Spot click handler for details
+document.querySelectorAll('.spot-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const spotNumber = this.dataset.spot;
+        const bookingId = this.dataset.booking;
+        
+        if (bookingId) {
+            alert(`Spot: ${spotNumber}\nBooking: ${bookingId}\nStatus: ${this.classList.contains('occupied') ? 'Occupied' : 'Reserved'}`);
+        } else {
+            alert(`Spot: ${spotNumber}\nStatus: Available`);
+        }
+    });
+});
+</script>
+
+<style>
+.live-slots-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.last-updated {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 10px;
+    font-family: monospace;
+}
+
+.status-summary {
+    margin-bottom: 40px;
+}
+
+.vehicle-section {
+    margin-bottom: 30px;
+}
+
+.zone-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.zone-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.zone-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 15px 0;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat .count {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.stat.available .count { color: #28a745; }
+.stat.occupied .count { color: #dc3545; }
+.stat.reserved .count { color: #ffc107; }
+
+.stat .label {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.occupancy-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ffc107, #dc3545);
+    transition: width 0.3s ease;
+}
+
+.view-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.spots-grid {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.zone-section {
+    margin-bottom: 30px;
+}
+
+.zone-section h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #3498db;
+}
+
+.spots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.spot-card {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.spot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.spot-card.status-available {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.spot-card.reserved {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.spot-card.occupied {
+    background: #f8d7da;
+    border-color: #dc3545;
+}
+
+.spot-number {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    font-family: monospace;
+}
+
+.spot-status {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.spot-time {
+    font-size: 0.7em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.legend {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.legend-items {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-item span:first-child {
+    font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+    .zone-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .spots-container {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+    }
+    
+    .spot-card {
+        padding: 10px;
+    }
+    
+    .view-controls {
+        justify-content: center;
+    }
+    
+    .legend-items {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry/Exit Logs - Admin Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .logs-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .logs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logs-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .logs-header-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logs-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            min-width: 150px;
+        }
+
+        .logs-table {
+            margin: 0;
+        }
+
+        .logs-table th {
+            background: #f8f9fa;
+            border-top: none;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+        }
+
+        .logs-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .logs-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .action-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .action-entry {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .action-exit {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .vehicle-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .vehicle-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .vehicle-bike {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .vehicle-car {
+            background: linear-gradient(135deg, #007bff, #6610f2);
+        }
+
+        .vehicle-details {
+            flex: 1;
+        }
+
+        .vehicle-number {
+            font-weight: bold;
+            color: #212529;
+        }
+
+        .vehicle-type {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: capitalize;
+        }
+
+        .user-info {
+            color: #212529;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .booking-id {
+            font-family: monospace;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #667eea;
+        }
+
+        .spot-badge {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .admin-name {
+            color: #667eea;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .refresh-btn i {
+            margin-right: 0.5rem;
+        }
+
+        .refresh-btn.refreshing i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #667eea !important;
+        }
+
+        @media (max-width: 768px) {
+            .logs-header-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .logs-stats {
+                justify-content: center;
+            }
+
+            .filter-controls {
+                justify-content: center;
+            }
+
+            .logs-table {
+                font-size: 0.9rem;
+            }
+
+            .logs-table td,
+            .logs-table th {
+                padding: 0.75rem;
+            }
+
+            .vehicle-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-history"></i> Entry/Exit Logs
+            </span>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_scanner') }}">
+                    <i class="fas fa-qrcode"></i> Scanner
+                </a>
+                <span class="nav-item nav-link">{{ admin_name }}</span>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="logs-header">
+        <div class="container text-center">
+            <h1><i class="fas fa-clipboard-list"></i> Entry/Exit Logs</h1>
+            <p class="mb-0">Complete history of vehicle movements and verifications</p>
+        </div>
+    </div>
+
+    <div class="container logs-container">
+        <div class="logs-card">
+            <!-- Header Section with Stats and Controls -->
+            <div class="logs-header-section">
+                <div class="logs-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalEntries">{{ logs|selectattr('action_type', 'equalto', 'entry')|list|length }}</span>
+                        <div class="stat-label">Total Entries</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalExits">{{ logs|selectattr('action_type', 'equalto', 'exit')|list|length }}</span>
+                        <div class="stat-label">Total Exits</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="currentlyParked">{{ logs|selectattr('action_type', 'equalto', 'entry')|list|length - logs|selectattr('action_type', 'equalto', 'exit')|list|length }}</span>
+                        <div class="stat-label">Currently Parked</div>
+                    </div>
+                </div>
+
+                <div class="filter-controls">
+                    <select class="form-select filter-select" id="actionFilter">
+                        <option value="">All Actions</option>
+                        <option value="entry">Entry Only</option>
+                        <option value="exit">Exit Only</option>
+                    </select>
+                    <select class="form-select filter-select" id="vehicleFilter">
+                        <option value="">All Vehicles</option>
+                        <option value="bike">Bikes</option>
+                        <option value="car">Cars</option>
+                    </select>
+                    <button class="btn refresh-btn" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Logs Table -->
+            <div class="table-responsive">
+                <table class="table logs-table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Vehicle</th>
+                            <th>User</th>
+                            <th>Booking ID</th>
+                            <th>Spot</th>
+                            <th>Timestamp</th>
+                            <th>Verified By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        {% if logs %}
+                            {% for log in logs %}
+                            <tr data-action="{{ log.action_type }}" data-vehicle="{{ log.vehicle_type }}">
+                                <td>
+                                    <span class="action-badge action-{{ log.action_type }}">
+                                        {% if log.action_type == 'entry' %}
+                                        <i class="fas fa-sign-in-alt"></i> Entry
+                                        {% else %}
+                                        <i class="fas fa-sign-out-alt"></i> Exit
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="vehicle-info">
+                                        <div class="vehicle-icon vehicle-{{ log.vehicle_type }}">
+                                            {% if log.vehicle_type == 'bike' %}
+                                            <i class="fas fa-motorcycle"></i>
+                                            {% else %}
+                                            <i class="fas fa-car"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="vehicle-details">
+                                            <div class="vehicle-number">{{ log.vehicle_number }}</div>
+                                            <div class="vehicle-type">{{ log.vehicle_type }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-name">{{ log.user_name }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="booking-id">{{ log.booking_id }}</span>
+                                </td>
+                                <td>
+                                    {% if log.spot_number %}
+                                    <span class="spot-badge">{{ log.spot_number }}</span>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="timestamp">{{ log.timestamp }}</div>
+                                </td>
+                                <td>
+                                    <div class="admin-name">{{ log.admin_name }}</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h5>No logs found</h5>
+                                    <p>No entry/exit records available yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Filter functionality
+        const actionFilter = document.getElementById('actionFilter');
+        const vehicleFilter = document.getElementById('vehicleFilter');
+        const tableBody = document.getElementById('logsTableBody');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        function filterLogs() {
+            const actionValue = actionFilter.value;
+            const vehicleValue = vehicleFilter.value;
+            const rows = tableBody.querySelectorAll('tr[data-action]');
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowAction = row.dataset.action;
+                const rowVehicle = row.dataset.vehicle;
+
+                const actionMatch = !actionValue || rowAction === actionValue;
+                const vehicleMatch = !vehicleValue || rowVehicle === vehicleValue;
+
+                if (actionMatch && vehicleMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update stats based on visible rows
+            updateFilteredStats();
+        }
+
+        function updateFilteredStats() {
+            const visibleRows = tableBody.querySelectorAll('tr[data-action]:not([style*="display: none"])');
+            let entryCount = 0;
+            let exitCount = 0;
+
+            visibleRows.forEach(row => {
+                if (row.dataset.action === 'entry') entryCount++;
+                if (row.dataset.action === 'exit') exitCount++;
+            });
+
+            document.getElementById('totalEntries').textContent = entryCount;
+            document.getElementById('totalExits').textContent = exitCount;
+            document.getElementById('currentlyParked').textContent = entryCount - exitCount;
+        }
+
+        actionFilter.addEventListener('change', filterLogs);
+        vehicleFilter.addEventListener('change', filterLogs);
+
+        // Refresh functionality
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.classList.add('refreshing');
+            
+            // Simulate refresh delay
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        });
+
+        // Auto-refresh every 2 minutes
+        setInterval(() => {
+            if (!refreshBtn.classList.contains('refreshing')) {
+                refreshBtn.click();
+            }
+        }, 120000);
+
+        // Format timestamps
+        function formatTimestamps() {
+            const timestamps = document.querySelectorAll('.timestamp');
+            timestamps.forEach(timestamp => {
+                const timeText = timestamp.textContent;
+                try {
+                    const date = new Date(timeText);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMins / 60);
+                    const diffDays = Math.floor(diffHours / 24);
+
+                    let relativeTime = '';
+                    if (diffMins < 1) {
+                        relativeTime = 'Just now';
+                    } else if (diffMins < 60) {
+                        relativeTime = `${diffMins}m ago`;
+                    } else if (diffHours < 24) {
+                        relativeTime = `${diffHours}h ago`;
+                    } else {
+                        relativeTime = `${diffDays}d ago`;
+                    }
+
+                    timestamp.innerHTML = `
+                        <div>${date.toLocaleString()}</div>
+                        <small class="text-muted">${relativeTime}</small>
+                    `;
+                } catch (e) {
+                    // Keep original text if parsing fails
+                }
+            });
+        }
+
+        // Format timestamps on load
+        document.addEventListener('DOMContentLoaded', formatTimestamps);
+    </script>
+</body>
+</html>

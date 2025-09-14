@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}My Parking Spot - University Parking Portal{% endblock %}
+
+{% block content %}
+<div class="my-spot-container">
+    {% if active_booking and assigned_spot %}
+    <div class="spot-active">
+        <h2>🅿️ Your Current Parking Spot</h2>
+        
+        <div class="spot-info-card">
+            <div class="spot-header">
+                <div class="spot-number-display">
+                    <span class="spot-label">Assigned Spot:</span>
+                    <span class="spot-number">{{ assigned_spot[0] }}</span>
+                </div>
+                <div class="spot-status-indicator">
+                    {% if assigned_spot[4] %}
+                    <span class="status occupied">🚗 Occupied</span>
+                    {% else %}
+                    <span class="status reserved">📅 Reserved</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="spot-details">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>📍 Location:</label>
+                        <span>Zone {{ assigned_spot[1] }}, Floor {{ assigned_spot[2] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>🚗 Vehicle:</label>
+                        <span>{{ active_booking[3] }} ({{ active_booking[4]|title }})</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>⏰ Entry Time:</label>
+                        <span>{{ active_booking[5] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>⏱️ Exit Time:</label>
+                        <span>{{ active_booking[6] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>🎫 Booking ID:</label>
+                        <span class="booking-id">{{ active_booking[1] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>💰 Amount Paid:</label>
+                        <span>₹{{ "%.0f"|format(active_booking[8]) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="spot-map">
+            <h3>🗺️ Spot Location Guide</h3>
+            <div class="map-container">
+                <div class="zone-map">
+                    <div class="zone-grid">
+                        {% set zones = ['A', 'B', 'C', 'D', 'E'] if active_booking[4] == 'bike' else ['A', 'B', 'C'] %}
+                        {% for zone in zones %}
+                        <div class="zone-block {{ 'highlighted' if zone == assigned_spot[1] else '' }}">
+                            <h4>Zone {{ zone }}</h4>
+                            <div class="zone-indicator">
+                                {% if zone == assigned_spot[1] %}
+                                <span class="your-zone">📍 YOUR ZONE</span>
+                                {% else %}
+                                <span class="other-zone">{{ active_booking[4]|title }} Parking</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="directions">
+                    <h4>📋 Directions to Your Spot:</h4>
+                    <ol>
+                        <li>Enter through the main gate</li>
+                        <li>Follow signs to <strong>Zone {{ assigned_spot[1] }}</strong></li>
+                        {% if assigned_spot[2] > 1 %}
+                        <li>Take elevator/stairs to <strong>Floor {{ assigned_spot[2] }}</strong></li>
+                        {% endif %}
+                        <li>Look for spot number <strong>{{ assigned_spot[0] }}</strong></li>
+                        <li>Your spot is marked and reserved for you</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="spot-actions">
+            <h3>⚡ Quick Actions</h3>
+            <div class="action-buttons">
+                <button class="btn btn-warning" onclick="extendBooking('{{ active_booking[1] }}')">
+                    ⏰ Extend Time
+                </button>
+                <button class="btn btn-info" onclick="showQRCode('{{ active_booking[11] }}')">
+                    📱 Show QR Code
+                </button>
+                <button class="btn btn-success" onclick="getDirections()">
+                    🗺️ Get Directions
+                </button>
+                <a href="{{ url_for('live_slots') }}" class="btn btn-secondary">
+                    👁️ View Live Slots
+                </a>
+            </div>
+        </div>
+        
+        <div class="time-tracker">
+            <h3>⏱️ Time Tracker</h3>
+            <div class="time-info">
+                <div class="time-remaining" id="timeRemaining">
+                    Calculating...
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-details">
+                    <span>Started: {{ active_booking[5] }}</span>
+                    <span>Ends: {{ active_booking[6] }}</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    {% else %}
+    <div class="no-active-spot">
+        <h2>🅿️ No Active Parking</h2>
+        <div class="no-spot-card">
+            <div class="no-spot-icon">🚫</div>
+            <h3>You don't have any active parking booking</h3>
+            <p>Book a parking spot to see your assigned location and details here.</p>
+            <div class="action-buttons">
+                <a href="{{ url_for('book') }}" class="btn btn-primary">
+                    🎫 Book Parking Spot
+                </a>
+                <a href="{{ url_for('live_slots') }}" class="btn btn-info">
+                    👁️ View Available Slots
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Your QR Code</h3>
+        <div id="qrCodeDisplay"></div>
+        <p>Scan this QR code at the entry/exit gate</p>
+    </div>
+</div>
+
+<!-- Extend Booking Modal -->
+<div id="extendModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Extend Booking</h3>
+        <form id="extendForm">
+            <div class="form-group">
+                <label for="additionalHours">Additional Hours:</label>
+                <select id="additionalHours" name="hours" required>
+                    <option value="1">1 Hour</option>
+                    <option value="2">2 Hours</option>
+                    <option value="3">3 Hours</option>
+                    <option value="4">4 Hours</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Extend Booking</button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+// Time tracking functionality
+{% if active_booking %}
+const exitTime = new Date('{{ active_booking[6] }}').getTime();
+const entryTime = new Date('{{ active_booking[5] }}').getTime();
+
+function updateTimeTracker() {
+    const now = new Date().getTime();
+    const timeRemaining = exitTime - now;
+    const totalDuration = exitTime - entryTime;
+    const elapsed = now - entryTime;
+    
+    const timeRemainingElement = document.getElementById('timeRemaining');
+    const progressFill = document.getElementById('progressFill');
+    
+    if (timeRemaining > 0) {
+        const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+        
+        timeRemainingElement.innerHTML = `
+            <div class="time-value positive">
+                ${hours}h ${minutes}m remaining
+            </div>
+        `;
+        
+        const progress = (elapsed / totalDuration) * 100;
+        progressFill.style.width = Math.min(progress, 100) + '%';
+        progressFill.style.background = progress > 80 ? '#dc3545' : progress > 60 ? '#ffc107' : '#28a745';
+        
+    } else {
+        const overTime = Math.abs(timeRemaining);
+        const overHours = Math.floor(overTime / (1000 * 60 * 60));
+        const overMinutes = Math.floor((overTime % (1000 * 60 * 60)) / (1000 * 60));
+        
+        timeRemainingElement.innerHTML = `
+            <div class="time-value negative">
+                ⚠️ ${overHours}h ${overMinutes}m OVERTIME
+            </div>
+        `;
+        
+        progressFill.style.width = '100%';
+        progressFill.style.background = '#dc3545';
+    }
+}
+
+// Update every minute
+setInterval(updateTimeTracker, 60000);
+updateTimeTracker(); // Initial call
+{% endif %}
+
+function getDirections() {
+    {% if assigned_spot %}
+    alert(`Directions to your spot {{ assigned_spot[0] }}:\n\n1. Enter main gate\n2. Go to Zone {{ assigned_spot[1] }}\n{% if assigned_spot[2] > 1 %}3. Floor {{ assigned_spot[2] }}\n{% endif %}3. Find spot {{ assigned_spot[0] }}\n\nYour spot is reserved and waiting for you!`);
+    {% endif %}
+}
+</script>
+
+<style>
+.my-spot-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.spot-info-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.spot-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.spot-number-display {
+    text-align: center;
+}
+
+.spot-label {
+    display: block;
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.spot-number {
+    display: block;
+    font-size: 3rem;
+    font-weight: bold;
+    font-family: monospace;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.spot-status-indicator .status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.status.occupied {
+    background: rgba(220, 53, 69, 0.2);
+    border: 2px solid #dc3545;
+}
+
+.status.reserved {
+    background: rgba(255, 193, 7, 0.2);
+    border: 2px solid #ffc107;
+}
+
+.spot-details {
+    padding: 30px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-item label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.booking-id {
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.spot-map {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.map-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.zone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.zone-block {
+    padding: 20px;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.zone-block.highlighted {
+    border-color: #28a745;
+    background: #d4edda;
+    transform: scale(1.05);
+}
+
+.your-zone {
+    color: #28a745;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.other-zone {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.directions ol {
+    padding-left: 20px;
+}
+
+.directions li {
+    margin: 10px 0;
+    padding: 5px 0;
+}
+
+.spot-actions, .time-tracker {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.time-info {
+    text-align: center;
+}
+
+.time-remaining {
+    margin: 20px 0;
+}
+
+.time-value {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.time-value.positive {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.time-value.negative {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #28a745;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+}
+
+.time-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.no-active-spot {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.no-spot-card {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.no-spot-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.no-spot-card h3 {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.no-spot-card p {
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .spot-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .spot-number {
+        font-size: 2.5rem;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .map-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .time-details {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}
