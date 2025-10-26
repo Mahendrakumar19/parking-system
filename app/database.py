@@ -171,8 +171,8 @@ class Database:
         # Initialize parking slots if empty
         cursor.execute('SELECT COUNT(*) FROM parking_slots')
         if cursor.fetchone()[0] == 0:
-            cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('bike', 50))
-            cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('car', 30))
+            cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('bike', 20))
+            cursor.execute('INSERT INTO parking_slots (slot_type, total_slots) VALUES (?, ?)', ('car', 20))
         
         # Initialize individual parking spots if empty
         cursor.execute('SELECT COUNT(*) FROM parking_spots')
@@ -186,8 +186,8 @@ class Database:
         conn.close()
     
     def _initialize_parking_spots(self, cursor):
-        # Initialize bike spots (50 total)
-        zones = ['A', 'B', 'C', 'D', 'E']
+        # Initialize bike spots (20 total - 2 zones with 10 spots each)
+        zones = ['A', 'B']
         for zone in zones:
             for i in range(1, 11):  # 10 spots per zone
                 spot_number = f"B{zone}{i:02d}"  # B for bike, e.g., BA01, BA02, etc.
@@ -196,8 +196,8 @@ class Database:
                     VALUES (?, ?, ?, ?)
                 ''', (spot_number, 'bike', zone, 1))
         
-        # Initialize car spots (30 total)
-        zones = ['A', 'B', 'C']
+        # Initialize car spots (20 total - 2 zones with 10 spots each)
+        zones = ['A', 'B']
         for zone in zones:
             for i in range(1, 11):  # 10 spots per zone
                 spot_number = f"C{zone}{i:02d}"  # C for car, e.g., CA01, CA02, etc.

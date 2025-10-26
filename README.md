@@ -11,16 +11,19 @@ A comprehensive web-based parking management system built with Python Flask for 
 
 ### Vehicle Booking System
 - **Multi-Vehicle Support**: Separate pricing for bikes (₹20/hour) and cars (₹30/hour)
+- **Limited Slots**: 20 bike slots and 20 car slots
 - **Real-time Availability**: Live slot availability checking
-- **Flexible Scheduling**: Choose custom entry and exit times
+- **Flexible Scheduling**: Choose custom entry and exit times with date selection
 - **QR Code Generation**: Automatic QR code creation for each booking
 - **Fine Integration**: Automatically includes pending fines in payment
 
 ### Smart Entry/Exit System
 - **QR Code Scanning**: Entry and exit via QR code scanning
+- **GATE OPEN Display**: Visual "GATE OPEN" confirmation on successful verification
+- **Vehicle Details**: Shows vehicle number and entry/exit time on screen
 - **Automatic Logging**: Real-time entry/exit time recording
 - **Late Exit Detection**: Automatic fine calculation for overdue exits
-- **Gate Simulation**: Built-in scanner simulation for testing
+- **Admin Scanner**: Dedicated scanner interface for security personnel
 
 ### Booking Management
 - **Dashboard Overview**: Complete booking history and status
