@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Management System</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --secondary: #34a853;
+            --accent: #ea4335;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --border: #e0e0e0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            background-color: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+        }
+
+        nav ul li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        nav ul li a:hover {
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #2d8f44;
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c5392f;
+        }
+
+        main {
+            padding: 32px 0;
+            min-height: calc(100vh - 140px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .qr-code {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .qr-placeholder {
+            width: 256px;
+            height: 256px;
+            background: var(--bg-light);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+        }
+
+        footer {
+            background-color: var(--bg-white);
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px 0;
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .booking-card {
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin-bottom: 16px;
+            background: var(--bg-white);
+            border-radius: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .booking-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .booking-card.expired {
+            border-left-color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .booking-card.active {
+            border-left-color: var(--secondary);
+        }
+
+        .booking-card p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .booking-card strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: var(--shadow-lg);
+            font-size: 14px;
+            max-width: 400px;
+        }
+
+        .notification.success {
+            background-color: var(--secondary);
+        }
+
+        .notification.error {
+            background-color: var(--accent);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes scan {
+            0%, 100% { top: 0; }
+            50% { top: 100%; }
+        }
+
+        .server-status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 4px;
+            background: var(--light);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.online {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-indicator.offline {
+            background: var(--accent);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        table thead {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        table tbody tr {
+            transition: background 0.2s;
+        }
+
+        table tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-entry {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .badge-exit {
+            background: #FFF9C4;
+            color: #F57F17;
+        }
+
+        .badge-overstay {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .badge-success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .badge-failed {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">University Parking System</div>
+                <nav>
+                    <ul>
+                        <li><a onclick="showPage('home')">Home</a></li>
+                        <li><a onclick="showPage('my-bookings')" id="my-bookings-link" class="hidden">Book Slot</a></li>
+                        <li><a onclick="showPage('booking-history')" id="history-link" class="hidden">History</a></li>
+                        <li><a onclick="showPage('scanner')" id="scanner-link" class="hidden">Scanner</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <button id="login-btn" class="btn btn-outline" onclick="showPage('login')">Login</button>
+                    <button id="register-btn" class="btn btn-primary" onclick="showPage('register')">Register</button>
+                    <button id="logout-btn" class="btn btn-outline hidden" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Home Page -->
+        <div id="home" class="page active">
+            <div class="card">
+                <h1>Welcome to University Parking Management System</h1>
+                <p>Easily manage your parking needs with our automated system. Book parking, make payments, and access parking with QR codes.</p>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card" id="bike-stat-card">
+                        <div class="stat-value" id="available-bike-slots">50</div>
+                        <div class="stat-label">🏍️ Available Bike Slots</div>
+                        <div id="bike-availability-indicator" style="margin-top: 5px; font-size: 0.8rem; font-weight: bold;"></div>
+                    </div>
+                    <div class="stat-card" id="car-stat-card">
+                        <div class="stat-value" id="available-car-slots">30</div>
+                        <div class="stat-label">🚗 Available Car Slots</div>
+                        <div id="car-availability-indicator" style="margin-top: 5px; font-size: 0.8rem; font-weight: bold;"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="active-bookings">0</div>
+                        <div class="stat-label">📊 Active Bookings Today</div>
+                    </div>
+                </div>
+
+                <div class="auth-buttons" id="home-auth-buttons">
+                    <button class="btn btn-primary" onclick="showPage('register')">Get Started</button>
+                    <button class="btn btn-outline" onclick="showPage('login')">Already Registered?</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="login" class="page">
+            <div class="card">
+                <h2>Login</h2>
+                
+                <!-- Session Error Warning (if detected) -->
+                <div id="session-warning" style="display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #856404; margin: 0 0 10px 0;">⚠️ <strong>Session Error Detected!</strong></p>
+                    <p style="color: #856404; margin: 0 0 10px 0; font-size: 0.9rem;">Your account data is corrupted. Please clear session and re-register.</p>
+                    <button type="button" onclick="clearSessionAndReload()" class="btn btn-primary" style="width: 100%;">
+                        Clear Session & Reload
+                    </button>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="Enter your password">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                            <input type="checkbox" id="admin-checkbox" style="margin-right: 8px; width: auto;">
+                            Login as Administrator
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                
+                <p style="margin-top: 15px; text-align: center;">
+                    Don't have an account? <a onclick="showPage('register')" style="color: var(--secondary); cursor: pointer;">Register here</a>
+                </p>
+                
+                <!-- Troubleshooting link -->
+                <p style="margin-top: 10px; text-align: center;">
+                    <a onclick="clearSessionAndReload()" style="color: #999; cursor: pointer; font-size: 0.85rem;">
+                        Clear session data
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Registration Page -->
+        <div id="register" class="page">
+            <div class="card">
+                <h2>Create New Account</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="reg-name">Full Name </label>
+                        <input type="text" id="reg-name" required pattern="[A-Za-z\s]+"
+                            title="Only alphabets and spaces allowed">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-mobile">Mobile Number</label>
+                        <input type="tel" id="reg-mobile" required pattern="[0-9]{10}"
+                            title="Exactly 10 digits required">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-address">Address</label>
+                        <input type="text" id="reg-address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-department">Department</label>
+                        <select id="reg-department" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Mechanical">Mechanical</option>
+                            <option value="Civil">Civil</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Management">Management</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-university-id">University ID</label>
+                        <input type="text" id="reg-university-id" required pattern="[A-Za-z0-9]+"
+                            title="Only letters and numbers allowed">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?&quot;:{}|&lt;&gt;])(?=.{8,})"
+                            title="At least 8 characters with 1 uppercase, 1 lowercase, and 1 special character">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+                <p>Already have an account? <a onclick="showPage('login')"
+                        style="color: var(--secondary); cursor: pointer;">Login here</a></p>
+            </div>
+        </div>
+
+        <!-- My Bookings Hub (All-in-One) -->
+        <div id="my-bookings" class="page">
+            <div class="card">
+                <h2>🅿️ Book Parking Slot</h2>
+
+                <div class="tabs">
+                    <div class="tab active" onclick="switchBookingTab('new-booking')">➕ New Booking</div>
+                    <div class="tab" onclick="switchBookingTab('extend-booking')">🔄 Extend Time</div>
+                </div>
+
+                <div id="new-booking" class="tab-content active">
+                    <form id="booking-form">
+                        <div class="form-group">
+                            <label for="vehicle-type">Vehicle Type</label>
+                            <select id="vehicle-type" required>
+                                <option value="">Select Vehicle Type</option>
+                                <option value="bike">Bike (₹20/hour)</option>
+                                <option value="car">Car (₹30/hour)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-number">Vehicle Number</label>
+                            <input type="text" id="vehicle-number" required
+                                placeholder="For Bike: MH 03 AA 4567 | For Car: GJ 03 AY 1097" maxlength="14">
+                        </div>
+                        <div class="form-group">
+                            <label for="entry-time">Entry Time</label>
+                            <input type="datetime-local" id="entry-time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="exit-time">Exit Time</label>
+                            <input type="datetime-local" id="exit-time" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+                    </form>
+                </div>
+
+                <div id="extend-booking" class="tab-content">
+                    <div id="extend-booking-content">
+                        <p>Loading active bookings...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Page -->
+        <div id="payment" class="page">
+            <div class="card">
+                <h2>Payment</h2>
+                <div id="payment-details">
+                    <p>Booking details will appear here</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-method">Payment Method</label>
+                    <select id="payment-method" onchange="togglePaymentFields()">
+                        <option value="card">Credit/Debit Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="netbanking">Net Banking</option>
+                    </select>
+                </div>
+
+                <div id="card-details">
+                    <div class="form-group">
+                        <label for="card-number">Card Number</label>
+                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-name">Name on Card</label>
+                        <input type="text" id="card-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-expiry">Expiry Date</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-cvv">CVV</label>
+                        <input type="text" id="card-cvv" placeholder="123">
+                    </div>
+                </div>
+
+                <div id="upi-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="upi-id">UPI ID</label>
+                        <input type="text" id="upi-id" placeholder="yourname@upi">
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="processPayment()">Pay Now</button>
+            </div>
+        </div>
+
+        <!-- QR Code Page -->
+        <div id="qr-code" class="page">
+            <div class="card">
+                <h2>✅ Booking Confirmed!</h2>
+                <div class="qr-code">
+                    <div class="qr-placeholder">
+                        <p>QR Code</p>
+                    </div>
+                    <p style="color: var(--success); font-weight: bold; margin: 10px 0;">📱 Scan this code at entry and exit gates</p>
+                    <p id="qr-booking-details" style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">Booking details</p>
+                    
+                    <!-- QR Code Data Display -->
+                    <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid var(--secondary);">
+                        <h4 style="margin-bottom: 10px; color: var(--primary);">🔐 QR Code Data</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Copy this data for manual scanner testing:</p>
+                        <div style="position: relative;">
+                            <textarea id="qr-data-display" readonly style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #90caf9; border-radius: 4px; font-family: monospace; font-size: 0.85rem; background: white; resize: vertical;"></textarea>
+                            <button onclick="copyQRData()" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--secondary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="downloadQRCode()" style="flex: 1;">📥 Download QR</button>
+                    <button class="btn btn-primary" onclick="downloadReceipt()" style="flex: 1;">🧾 Download Receipt</button>
+                    <button class="btn btn-outline" onclick="showPage('booking-history')">View My Bookings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking History Page -->
+        <!-- Booking History Page -->
+        <div id="booking-history" class="page">
+            <!-- User Stats (Always show for non-admin users) -->
+            <div id="user-stats" class="card" style="display: none;">
+                <h2>📊 Your Booking Summary</h2>
+                <div class="dashboard-stats" style="margin-top: 1rem;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="user-total-bookings">0</div>
+                        <div class="stat-label">Total Bookings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="user-total-spent">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Booking History</h2>
+                
+                <!-- Search Box for Users -->                <div id="user-search" class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
+                    <label for="search-bookings">🔍 Search Bookings</label>
+                    <input type="text" id="search-bookings" placeholder="Search by Booking ID or Vehicle Number" oninput="filterBookings()" style="width: 100%;">
+                </div>
+                
+                <!-- Admin Filters -->
+                <div id="admin-filters" style="display: none; margin-bottom: 1rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary);">🔍 Admin Filters</h3>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Filter by User</label>
+                            <input type="text" id="filter-user-email" placeholder="Enter user email...">
+                        </div>
+                        <div class="form-group">
+                            <label>Filter by Vehicle</label>
+                            <input type="text" id="filter-vehicle-number" placeholder="Enter vehicle number...">
+                        </div>
+                        <div class="form-group">
+                            <label>Booking Status</label>
+                            <select id="filter-booking-status">
+                                <option value="">All Status</option>
+                                <option value="in_progress">In Progress (Active)</option>
+                                <option value="completed">Completed (Exited)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="updateBookingHistory()">Apply Filters</button>
+                        <button class="btn btn-outline" onclick="resetHistoryFilters()">Reset</button>
+                        <button class="btn btn-success" onclick="exportBookingsToCSV()" style="margin-left: auto;">📥 Export to CSV</button>
+                    </div>
+                </div>
+
+                <div id="history-list">
+                    <p>Loading booking history...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Page (Admin Only) -->
+        <div id="scanner" class="page">
+            <!-- Scanner Card -->
+            <div class="card">
+                <h2 style="color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                    <span style="font-size: 1.8rem;">📸</span> QR Scanner
+                </h2>
+                
+                <div class="server-status" id="scannerServerStatus" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+                    <span class="status-indicator offline"></span>
+                    Checking server connection...
+                </div>
+
+                <!-- Current Mode Display -->
+                <div id="currentModeDisplay" style="background: #27ae60; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 1.1rem; font-weight: 600;">
+                    📍 Current Mode: ENTRY
+                </div>
+
+                <!-- Mode Selection -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                    <button id="entryModeBtn" class="btn" onclick="switchScanMode('entry')" style="padding: 15px; font-size: 1rem; font-weight: 600; background: #27ae60; color: #ffffff !important; border: none;">
+                        🟢 ENTRY
+                    </button>
+                    <button id="exitModeBtn" class="btn" onclick="switchScanMode('exit')" style="padding: 15px; font-size: 1rem; font-weight: 600; background: #95a5a6; color: #ffffff !important; border: none;">
+                        🟠 EXIT
+                    </button>
+                </div>
+
+                <!-- Camera View -->
+                <div style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px; height: 400px;" id="cameraBox">
+                    <video id="scannerVideo" style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                    <canvas id="scannerCanvas" style="display: none;"></canvas>
+                    <div id="cameraOff" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #fff;">
+                        <div style="font-size: 64px; margin-bottom: 10px;">📷</div>
+                        <p>Camera Off</p>
+                    </div>
+                    <div id="scanOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; border: 3px solid #2ecc71; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); display: none;">
+                        <div style="position: absolute; width: 100%; height: 2px; background: #2ecc71; box-shadow: 0 0 10px #2ecc71; animation: scan 2s infinite;"></div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                    <button id="startCameraBtn" class="btn btn-primary" onclick="startScannerCamera()">
+                        📷 Start Camera
+                    </button>
+                    <button id="stopCameraBtn" class="btn btn-danger" onclick="stopScannerCamera()" style="display: none;">
+                        ⏹️ Stop Camera
+                    </button>
+                </div>
+
+                <!-- Manual Input -->
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;"><strong>Manual Test:</strong> Paste QR code data</p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="manualQRInput" placeholder="Paste QR code here..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        <button class="btn btn-secondary" onclick="testManualQR()">Scan</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan Result -->
+            <div id="scanResult" style="margin-top: 1rem; padding: 1.5rem; border-radius: 8px; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h3 style="margin-bottom: 1rem;"></h3>
+                <div id="scanResultContent"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>University Parking Management System &copy; 2025</p>
+        </div>
+    </footer>
+
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+        
+        #entryModeBtn.active {
+            background: var(--success) !important;
+            color: white !important;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5) !important;
+        }
+        
+        #exitModeBtn.active {
+            background: #f39c12 !important;
+            color: white !important;
+            border-color: #f39c12 !important;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.5) !important;
+        }
+    </style>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:5000/api';
+
+        // Sample data for offline fallback
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let pendingBooking = JSON.parse(localStorage.getItem('pendingBooking')) || null;
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check session health on page load
+            checkSessionHealth();
+            
+            updateAuthUI();
+            updateDashboardStats();
+            updateBookingHistory();
+            updateExtendBooking();
+
+            // Set minimum datetime to current time
+            const now = new Date();
+            const localDateTime = now.toISOString().slice(0, 16);
+            document.getElementById('entry-time').min = localDateTime;
+            document.getElementById('exit-time').min = localDateTime;
+
+            // Form submissions
+            document.getElementById('login-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                login();
+            });
+
+            document.getElementById('register-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                register();
+            });
+
+            document.getElementById('booking-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                checkAvailability();
+            });
+
+            // Real-time availability check
+            document.getElementById('entry-time').addEventListener('change', updateAvailability);
+            document.getElementById('exit-time').addEventListener('change', updateAvailability);
+            document.getElementById('vehicle-type').addEventListener('change', updateAvailability);
+        });
+
+        // API Functions
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Return error data instead of throwing for validation errors
+                    return data;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                // Don't show notification for every failed call
+                throw error;
+            }
+        }
+
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            // Update specific page data when shown
+            if (pageId === 'booking-history') {
+                updateBookingHistory();
+            } else if (pageId === 'my-bookings') {
+                updateExtendBooking();
+                // Load the default tab (new-booking is active by default)
+            } else if (pageId === 'home') {
+                updateDashboardStats();
+            } else if (pageId === 'scanner') {
+                checkScannerServerStatus();
+            }
+        }
+
+        // Tab switching
+        function switchBookingTab(tabId) {
+            // Switch tabs within My Bookings page
+            document.querySelectorAll('#my-bookings .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('#my-bookings .tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Find and activate the correct tab button
+            const tabs = document.querySelectorAll('#my-bookings .tab');
+            tabs.forEach(tab => {
+                if (tab.getAttribute('onclick').includes(tabId)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            // Load data for specific tab
+            if (tabId === 'my-history') {
+                loadMyHistory();
+            } else if (tabId === 'extend-booking') {
+                updateExtendBooking();
+            }
+        }
+
+        // Authentication functions
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const isAdminLogin = document.getElementById('admin-checkbox').checked;
+
+            if (!email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+            
+            // If admin checkbox is checked, verify it's admin email
+            if (isAdminLogin && email !== 'admin@parking.com') {
+                showNotification('Only admin@parking.com can login as administrator', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('Login API Response:', result);
+                console.log('User object from backend:', result.user);
+
+                if (result.success) {
+                    currentUser = result.user;
+                    console.log('currentUser set to:', currentUser);
+                    console.log('currentUser.userid:', currentUser.userid, '(type:', typeof currentUser.userid, ')');
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateAuthUI();
+                    
+                    // Redirect to home page after login
+                    showPage('home');
+                    
+                    // Check if user is admin
+                    const isAdmin = currentUser.email === 'admin@parking.com' || currentUser.role === 'admin';
+                    
+                    if (isAdmin) {
+                        showNotification('Admin login successful', 'success');
+                    } else {
+                        showNotification('Login successful', 'success');
+                    }
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('reg-name').value;
+            const mobile = document.getElementById('reg-mobile').value;
+            const address = document.getElementById('reg-address').value;
+            const department = document.getElementById('reg-department').value;
+            const universityId = document.getElementById('reg-university-id').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            // Basic validation
+            if (!name || !mobile || !address || !department || !universityId || !email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            // Client-side password validation
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?=.{8,})/;
+            if (!passwordRegex.test(password)) {
+                showNotification('Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 special character', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('/register', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name, mobile, address, department, universityId, email, password
+                    })
+                });
+
+                if (result.success) {
+                    showNotification('Registration successful! Please login with your email and password.', 'success');
+                    // Clear form
+                    document.getElementById('register-form').reset();
+                    showPage('login');
+                } else {
+                    // Show detailed validation errors if available
+                    if (result.errors && result.errors.length > 0) {
+                        showNotification(result.errors.join(', '), 'error');
+                    } else {
+                        showNotification(result.message || 'Registration failed', 'error');
+                    }
+                }
+            } catch (error) {
+                // Only fallback to local storage if there's a network error, not validation errors
+                console.error('Registration error:', error);
+                showNotification('Network error. Please check your connection and try again.', 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            updateAuthUI();
+            showPage('home');
+            showNotification('Logged out successfully', 'success');
+        }
+
+        function clearSessionAndReload() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showNotification('Session cleared! Please re-register or login.', 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+
+        function checkSessionHealth() {
+            // Check if user session is corrupted (userid contains @)
+            if (currentUser && currentUser.userid && typeof currentUser.userid === 'string' && currentUser.userid.includes('@')) {
+                console.error('⚠️ Corrupted session detected! User ID contains @:', currentUser.userid);
+                
+                // Show warning on login page
+                const warning = document.getElementById('session-warning');
+                if (warning) {
+                    warning.style.display = 'block';
+                }
+                
+                // Auto logout corrupted session
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                updateAuthUI();
+                showPage('login');
+                showNotification('Session error detected. Please clear session and re-register.', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        function updateAuthUI() {
+            // Check session health first
+            if (currentUser && !checkSessionHealth()) {
+                return;
+            }
+            
+            if (currentUser) {
+                document.getElementById('login-btn').classList.add('hidden');
+                document.getElementById('register-btn').classList.add('hidden');
+                document.getElementById('logout-btn').classList.remove('hidden');
+                
+                // Hide Get Started buttons on home page
+                const homeAuthButtons = document.getElementById('home-auth-buttons');
+                if (homeAuthButtons) {
+                    homeAuthButtons.style.display = 'none';
+                }
+                
+                // Check if user is admin (you can check email or role)
+                const isAdmin = currentUser.email === 'admin@parking.com' || currentUser.role === 'admin';
+                
+                if (isAdmin) {
+                    // Admin users: hide booking, show scanner and history
+                    document.getElementById('my-bookings-link').classList.add('hidden');
+                    document.getElementById('history-link').classList.remove('hidden');
+                    document.getElementById('scanner-link').classList.remove('hidden');
+                } else {
+                    // Regular users: show booking and history, hide scanner
+                    document.getElementById('my-bookings-link').classList.remove('hidden');
+                    document.getElementById('history-link').classList.remove('hidden');
+                    document.getElementById('scanner-link').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('login-btn').classList.remove('hidden');
+                document.getElementById('register-btn').classList.remove('hidden');
+                document.getElementById('logout-btn').classList.add('hidden');
+                document.getElementById('my-bookings-link').classList.add('hidden');
+                document.getElementById('history-link').classList.add('hidden');
+                document.getElementById('scanner-link').classList.add('hidden');
+                
+                // Show Get Started buttons on home page
+                const homeAuthButtons = document.getElementById('home-auth-buttons');
+                if (homeAuthButtons) {
+                    homeAuthButtons.style.display = 'flex';
+                }
+            }
+        }
+
+        // Home page stats
+        async function updateDashboardStats() {
+            try {
+                const result = await apiCall('/dashboard-stats');
+                const bikeSlots = result.bike_slots;
+                const carSlots = result.car_slots;
+                
+                document.getElementById('available-bike-slots').textContent = bikeSlots;
+                document.getElementById('available-car-slots').textContent = carSlots;
+                document.getElementById('active-bookings').textContent = result.active_bookings;
+                
+                // Update availability indicators with colors
+                updateAvailabilityIndicator('bike', bikeSlots, 50);
+                updateAvailabilityIndicator('car', carSlots, 30);
+            } catch (error) {
+                // Use default values if API fails
+                document.getElementById('available-bike-slots').textContent = '50';
+                document.getElementById('available-car-slots').textContent = '30';
+                document.getElementById('active-bookings').textContent = '0';
+                updateAvailabilityIndicator('bike', 50, 50);
+                updateAvailabilityIndicator('car', 30, 30);
+            }
+        }
+
+        // Update availability indicator with color coding
+        function updateAvailabilityIndicator(type, available, total) {
+            const percentage = (available / total) * 100;
+            const indicator = document.getElementById(`${type}-availability-indicator`);
+            const statCard = document.getElementById(`${type}-stat-card`);
+            
+            if (!indicator || !statCard) return;
+            
+            let color, status, bgColor;
+            if (percentage > 50) {
+                color = '#27ae60';
+                status = 'Good Availability';
+                bgColor = '#d4edda';
+            } else if (percentage > 20) {
+                color = '#f39c12';
+                status = 'Limited Slots';
+                bgColor = '#fff3cd';
+            } else if (percentage > 0) {
+                color = '#e74c3c';
+                status = 'Almost Full';
+                bgColor = '#f8d7da';
+            } else {
+                color = '#c0392b';
+                status = 'FULL';
+                bgColor = '#f5c6cb';
+            }
+            
+            indicator.textContent = status;
+            indicator.style.color = color;
+            statCard.style.borderLeft = `4px solid ${color}`;
+            statCard.style.backgroundColor = bgColor;
+        }
+
+        // Client-side vehicle number validation
+        function validateVehicleNumber(vehicleNumber, vehicleType) {
+            if (vehicleType === 'bike') {
+                // Bike pattern: MH 03 AA 4567 or MH03AA4567
+                const pattern = /^[A-Z]{2}\s?[0-9]{1,2}\s?[A-Z]{1,3}\s?[0-9]{4}$/;
+                return pattern.test(vehicleNumber);
+            } else if (vehicleType === 'car') {
+                // Car pattern: GJ 03 AY 1097 or GJ03AY1097
+                const pattern = /^[A-Z]{2}\s?[0-9]{1,2}\s?[A-Z]{1,2}\s?[0-9]{4}$/;
+                return pattern.test(vehicleNumber);
+            }
+            return false;
+        }
+
+        // Booking functions
+        async function checkAvailability() {
+            if (!currentUser) {
+                showNotification('Please login to book a slot', 'error');
+                showPage('login');
+                return;
+            }
+
+            const vehicleType = document.getElementById('vehicle-type').value;
+            const vehicleNumber = document.getElementById('vehicle-number').value;
+            const entryTime = document.getElementById('entry-time').value;
+            const exitTime = document.getElementById('exit-time').value;
+
+            if (!vehicleType || !vehicleNumber || !entryTime || !exitTime) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            // Validate vehicle number format
+            if (!validateVehicleNumber(vehicleNumber.toUpperCase(), vehicleType)) {
+                const formatMsg = vehicleType === 'bike'
+                    ? 'Invalid bike number format. Expected: MH 03 AA 4567 or MH03AA4567'
+                    : 'Invalid car number format. Expected: GJ 03 AY 1097 or GJ03AY1097';
+                showNotification(formatMsg, 'error');
+                return;
+            }
+
+            const entryDateTime = new Date(entryTime);
+            const exitDateTime = new Date(exitTime);
+
+            if (exitDateTime <= entryDateTime) {
+                showNotification('Exit time must be after entry time', 'error');
+                return;
+            }
+
+            // Calculate duration in hours
+            const durationMs = exitDateTime - entryDateTime;
+            const durationHours = Math.ceil(durationMs / (1000 * 60 * 60));
+
+            if (durationHours < 1) {
+                showNotification('Minimum booking duration is 1 hour', 'error');
+                return;
+            }
+
+            // Calculate cost
+            const rate = vehicleType === 'bike' ? 20 : 30;
+            const cost = durationHours * rate;
+
+            // Store booking details for payment
+            pendingBooking = {
+                vehicle_type: vehicleType,
+                vehicle_number: vehicleNumber,
+                entry_time: entryDateTime.toISOString(),
+                exit_time: exitDateTime.toISOString(),
+                duration_hours: durationHours,
+                cost: cost,
+                user_id: currentUser.userid
+            };
+
+            localStorage.setItem('pendingBooking', JSON.stringify(pendingBooking));
+
+            // Show payment page with details
+            document.getElementById('payment-details').innerHTML = `
+                <div class="booking-card">
+                    <p><strong>Vehicle Type:</strong> ${vehicleType === 'bike' ? 'Bike' : 'Car'}</p>
+                    <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
+                    <p><strong>Entry Time:</strong> ${entryDateTime.toLocaleString()}</p>
+                    <p><strong>Exit Time:</strong> ${exitDateTime.toLocaleString()}</p>
+                    <p><strong>Duration:</strong> ${durationHours} hours</p>
+                    <p><strong>Hourly Rate:</strong> ₹${rate}/hour</p>
+                    <p><strong>Total Cost:</strong> ₹${cost}</p>
+                </div>
+            `;
+
+            showPage('payment');
+        }
+
+        async function updateAvailability() {
+            // This function is kept for compatibility but doesn't check slots anymore
+            // Slots are display-only now
+        }
+
+        // Toggle payment fields based on payment method
+        function togglePaymentFields() {
+            const paymentMethod = document.getElementById('payment-method').value;
+            const cardDetails = document.getElementById('card-details');
+            const upiDetails = document.getElementById('upi-details');
+
+            if (paymentMethod === 'upi') {
+                cardDetails.style.display = 'none';
+                upiDetails.style.display = 'block';
+            } else if (paymentMethod === 'card') {
+                cardDetails.style.display = 'block';
+                upiDetails.style.display = 'none';
+            } else {
+                // Net banking or other methods
+                cardDetails.style.display = 'block';
+                upiDetails.style.display = 'none';
+            }
+        }
+
+        // Client-side card validation
+        function validateCardDetails(cardNumber, cvv, name, expiryDate) {
+            const errors = [];
+
+            // Remove spaces from card number
+            const cleanedCardNumber = cardNumber.replace(/\s/g, '');
+
+            // Validate card number (16 digits, Visa/Mastercard/RuPay)
+            const cardPattern = /^(?:4[0-9]{15}|5[1-5][0-9]{14}|6(?:011|5[0-9]{2})[0-9]{12})$/;
+            if (!cardPattern.test(cleanedCardNumber)) {
+                errors.push('Invalid card number. Use a valid 16-digit Visa, Mastercard, or RuPay card');
+            }
+
+            // Validate CVV (3 digits)
+            const cvvPattern = /^[0-9]{3}$/;
+            if (!cvvPattern.test(cvv)) {
+                errors.push('Invalid CVV. CVV must be exactly 3 digits');
+            }
+
+            // Validate name (alphabets and spaces only)
+            const namePattern = /^[a-zA-Z\s]+$/;
+            if (!namePattern.test(name)) {
+                errors.push('Invalid name. Name can only contain alphabets and spaces');
+            }
+
+            // Validate expiry date (MM/YY format)
+            const expiryPattern = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
+            const expiryMatch = expiryDate.match(expiryPattern);
+
+            if (!expiryMatch) {
+                errors.push('Invalid expiry date format. Use MM/YY format (e.g., 12/25)');
+            } else {
+                const month = parseInt(expiryMatch[1]);
+                const year = parseInt(expiryMatch[2]);
+                const fullYear = 2000 + year;
+                const currentYear = 2025;
+
+                if (fullYear < currentYear) {
+                    errors.push('Invalid expiry date. Card has expired');
+                }
+            }
+
+            return errors;
+        }
+
+        // Validate UPI ID
+        function validateUPI(upiId) {
+            const upiPattern = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+            return upiPattern.test(upiId);
+        }
+
+        async function processPayment() {
+            console.log('=== processPayment called ===');
+            
+            // Check if this is an extension payment or new booking
+            const extensionPaymentStr = localStorage.getItem('extensionPayment');
+            console.log('extensionPayment from localStorage:', extensionPaymentStr);
+            
+            const extensionPayment = JSON.parse(extensionPaymentStr || 'null');
+            console.log('Parsed extensionPayment:', extensionPayment);
+            
+            if (extensionPayment) {
+                console.log('Processing EXTENSION payment');
+                // Process extension payment
+                await processExtensionPayment(extensionPayment);
+                return;
+            }
+            
+            console.log('Processing NEW BOOKING payment');
+            
+            if (!pendingBooking) {
+                showNotification('No booking found. Please try again.', 'error');
+                return;
+            }
+
+            const paymentMethod = document.getElementById('payment-method').value;
+
+            // Validate payment method specific fields
+            if (paymentMethod === 'upi') {
+                const upiId = document.getElementById('upi-id').value;
+                if (!validateUPI(upiId)) {
+                    showNotification('Invalid UPI ID. Format: yourname@upi (e.g., john@paytm)', 'error');
+                    return;
+                }
+            } else if (paymentMethod === 'card') {
+                // Get card details
+                const cardNumber = document.getElementById('card-number').value;
+                const cvv = document.getElementById('card-cvv').value;
+                const cardName = document.getElementById('card-name').value;
+                const expiryDate = document.getElementById('card-expiry').value;
+
+                // Validate card details
+                const validationErrors = validateCardDetails(cardNumber, cvv, cardName, expiryDate);
+                if (validationErrors.length > 0) {
+                    showNotification(validationErrors.join('. '), 'error');
+                    return;
+                }
+            }
+
+            try {
+                const result = await apiCall('/book-slot', {
+                    method: 'POST',
+                    body: JSON.stringify(pendingBooking)
+                });
+
+                if (result.success) {
+                    // Store booking data before clearing pendingBooking
+                    const bookingData = { ...pendingBooking };
+
+                    // Clear pending booking
+                    localStorage.removeItem('pendingBooking');
+                    pendingBooking = null;
+
+                    // Update QR code placeholder with actual QR image
+                    const qrPlaceholder = document.querySelector('.qr-placeholder');
+                    if (qrPlaceholder && result.qr_code) {
+                        qrPlaceholder.innerHTML = `<img src="${result.qr_code}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    }
+
+                    // Display QR code data in the textarea
+                    const qrDataDisplay = document.getElementById('qr-data-display');
+                    if (qrDataDisplay && result.qr_data) {
+                        qrDataDisplay.value = result.qr_data;
+                    }
+
+                    // Show QR code details
+                    document.getElementById('qr-booking-details').innerHTML = `
+                        <strong>Booking ID:</strong> ${result.booking_id}<br>
+                        <strong>Vehicle:</strong> ${bookingData.vehicle_type === 'bike' ? '🏍️ Bike' : '🚗 Car'} (${bookingData.vehicle_number})<br>
+                        <strong>Entry:</strong> ${new Date(bookingData.entry_time).toLocaleString()}<br>
+                        <strong>Exit:</strong> ${new Date(bookingData.exit_time).toLocaleString()}<br>
+                        <strong>Total Paid:</strong> ₹${bookingData.cost}
+                    `;
+
+                    // Send notification to admin
+                    sendAdminNotification({
+                        type: 'new_booking',
+                        booking_id: result.booking_id,
+                        user_id: currentUser.userid,
+                        user_name: currentUser.name,
+                        user_email: currentUser.email,
+                        vehicle_type: bookingData.vehicle_type,
+                        vehicle_number: bookingData.vehicle_number,
+                        entry_time: bookingData.entry_time,
+                        exit_time: bookingData.exit_time,
+                        cost: bookingData.cost,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    showPage('qr-code');
+                    showNotification('Payment successful! Scan QR at entry gate.', 'success');
+
+                    // Clear booking form
+                    document.getElementById('booking-form').reset();
+                } else {
+                    showNotification('Booking failed: ' + result.message, 'error');
+                }
+            } catch (error) {
+                // Fallback to local storage
+                const bookingId = 'BK' + Date.now().toString().slice(-8);
+                const newBooking = {
+                    id: bookingId,
+                    userId: currentUser.userid,
+                    ...pendingBooking,
+                    paymentStatus: 'paid',
+                    status: 'confirmed',
+                    qrCode: 'QR_' + bookingId,
+                    createdAt: new Date().toISOString()
+                };
+
+                bookings.push(newBooking);
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+
+                // Clear pending booking
+                localStorage.removeItem('pendingBooking');
+                pendingBooking = null;
+
+                // Show QR code
+                document.getElementById('qr-booking-details').innerHTML = `
+                    <strong>Booking ID:</strong> ${bookingId}<br>
+                    <strong>Vehicle:</strong> ${newBooking.vehicle_type === 'bike' ? 'Bike' : 'Car'} (${newBooking.vehicle_number})<br>
+                    <strong>Entry:</strong> ${new Date(newBooking.entry_time).toLocaleString()}<br>
+                    <strong>Exit:</strong> ${new Date(newBooking.exit_time).toLocaleString()}
+                `;
+
+                showPage('qr-code');
+                showNotification('Payment successful! (Offline)', 'success');
+
+                // Clear booking form
+                document.getElementById('booking-form').reset();
+            }
+        }
+
+        // Process extension payment
+        async function processExtensionPayment(extensionData) {
+            console.log('=== processExtensionPayment called ===');
+            console.log('Extension data:', extensionData);
+            
+            const paymentMethod = document.getElementById('payment-method').value;
+            console.log('Payment method:', paymentMethod);
+
+            // Validate payment method specific fields
+            if (paymentMethod === 'upi') {
+                const upiId = document.getElementById('upi-id').value;
+                if (!validateUPI(upiId)) {
+                    showNotification('Invalid UPI ID. Format: yourname@upi (e.g., john@paytm)', 'error');
+                    return;
+                }
+            } else if (paymentMethod === 'card') {
+                // Get card details
+                const cardNumber = document.getElementById('card-number').value;
+                const cvv = document.getElementById('card-cvv').value;
+                const cardName = document.getElementById('card-name').value;
+                const expiryDate = document.getElementById('card-expiry').value;
+
+                console.log('Card validation - Number:', cardNumber, 'CVV:', cvv, 'Name:', cardName, 'Expiry:', expiryDate);
+
+                // Validate card details
+                const validationErrors = validateCardDetails(cardNumber, cvv, cardName, expiryDate);
+                if (validationErrors.length > 0) {
+                    console.log('Validation errors:', validationErrors);
+                    showNotification(validationErrors.join('. '), 'error');
+                    return;
+                }
+            }
+
+            console.log('Payment validation passed, calling API...');
+
+            try {
+                const result = await apiCall('/extend-booking', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        booking_id: extensionData.booking_id,
+                        extend_hours: extensionData.extend_hours,
+                        user_id: extensionData.user_id
+                    })
+                });
+
+                console.log('API response:', result);
+
+                if (result.success) {
+                    // Clear extension payment data
+                    localStorage.removeItem('extensionPayment');
+
+                    // Format the new exit time
+                    let newExitTime = 'Updated';
+                    try {
+                        newExitTime = new Date(result.new_exit_time).toLocaleString('en-IN', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                        });
+                    } catch (e) {
+                        newExitTime = result.new_exit_time || 'Updated';
+                    }
+
+                    // Show notification
+                    showNotification(`✅ Booking extended by ${extensionData.extend_hours} hour(s). New exit time: ${newExitTime}`, 'success');
+                    
+                    // Redirect to Book Slot page
+                    showPage('my-bookings');
+                    
+                    updateBookingHistory();
+                } else {
+                    console.log('Extension failed:', result.message);
+                    showNotification(result.message || 'Extension failed', 'error');
+                }
+            } catch (error) {
+                console.error('Extension payment error:', error);
+                showNotification('Error processing extension payment: ' + error.message, 'error');
+            }
+        }
+
+        // History functions
+        async function updateBookingHistory() {
+            if (!currentUser) {
+                console.log('No current user');
+                return;
+            }
+
+            console.log('Updating booking history for user:', currentUser);
+            
+            // Validate that userid is a number, not an email
+            if (currentUser.userid && typeof currentUser.userid === 'string' && currentUser.userid.includes('@')) {
+                console.error('Invalid userid detected (contains @). Please log out and log in again.');
+                const statsContainer = document.getElementById('user-stats');
+                if (statsContainer) {
+                    statsContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; text-align: center;">
+                            <p style="color: #856404; margin: 0;">⚠️ Session error detected. Please <strong>Log Out</strong> and <strong>Log In</strong> again.</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            const isAdmin = currentUser.email === 'admin@parking.com' || currentUser.role === 'admin';
+            
+            // Show/hide sections based on user role
+            if (isAdmin) {
+                document.getElementById('admin-filters').style.display = 'block';
+                document.getElementById('user-stats').style.display = 'none';
+            } else {
+                document.getElementById('admin-filters').style.display = 'none';
+                document.getElementById('user-stats').style.display = 'block';
+            }
+            
+            try {
+                let bookingsData = [];
+                if (isAdmin) {
+                    // Admin sees all bookings
+                    const filterEmail = document.getElementById('filter-user-email')?.value || '';
+                    const filterVehicle = document.getElementById('filter-vehicle-number')?.value || '';
+                    const filterStatus = document.getElementById('filter-booking-status')?.value || '';
+                    
+                    let url = '/all-bookings';
+                    const params = new URLSearchParams();
+                    if (filterEmail) params.append('email', filterEmail);
+                    if (filterVehicle) params.append('vehicle_number', filterVehicle);
+                    if (filterStatus) params.append('status', filterStatus);
+                    
+                    if (params.toString()) url += '?' + params.toString();
+                    
+                    console.log('Fetching admin bookings from:', url);
+                    const result = await apiCall(url);
+                    bookingsData = result.bookings || result || [];
+                } else {
+                    // Regular user sees only their bookings
+                    console.log('Fetching user bookings for userid:', currentUser.userid);
+                    
+                    // Try the API endpoint
+                    const result = await apiCall(`/user-bookings/${currentUser.userid}`);
+                    console.log('API Response:', result);
+                    
+                    // Handle different response formats
+                    if (Array.isArray(result)) {
+                        bookingsData = result;
+                    } else if (result.bookings) {
+                        bookingsData = result.bookings;
+                    } else if (result.success && result.data) {
+                        bookingsData = result.data;
+                    } else {
+                        bookingsData = [];
+                    }
+                    
+                    console.log('Bookings data:', bookingsData);
+                    
+                    // Calculate and display simplified user stats
+                    const totalBookings = bookingsData.length;
+                    const completedBookings = bookingsData.filter(b => 
+                        b.exit_time
+                    ).length;
+                    
+                    console.log('Stats - Total:', totalBookings, 'Completed:', completedBookings);
+                    
+                    document.getElementById('user-total-bookings').textContent = totalBookings;
+                    document.getElementById('user-total-spent').textContent = completedBookings;
+                }
+                
+                displayBookingHistory(bookingsData, isAdmin);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                
+                // Show error but still display stats section for regular users
+                if (!isAdmin) {
+                    document.getElementById('user-total-bookings').textContent = '0';
+                    document.getElementById('user-total-spent').textContent = '0';
+                }
+                
+                const historyContainer = document.getElementById('history-list');
+                historyContainer.innerHTML = `
+                    <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+                        <p style="color: #856404; margin-bottom: 10px;"><strong>⚠️ Unable to load booking history</strong></p>
+                        <p style="color: #856404; font-size: 0.9rem;">Please make sure the backend server is running at ${API_BASE}</p>
+                        <p style="color: #856404; font-size: 0.9rem; margin-top: 5px;">Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayBookingHistory(userBookings, isAdmin = false) {
+            const historyContainer = document.getElementById('history-list');
+
+            console.log('Displaying bookings:', userBookings, 'isAdmin:', isAdmin);
+
+            if (!userBookings || userBookings.length === 0) {
+                if (isAdmin) {
+                    // Admin sees simple "no bookings" message
+                    historyContainer.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #7f8c8d;">
+                            <div style="font-size: 64px; margin-bottom: 15px;">📭</div>
+                            <h3 style="color: var(--primary); margin-bottom: 10px;">No bookings found</h3>
+                            <p style="font-size: 0.95rem;">Try adjusting your filters or check back later.</p>
+                        </div>
+                    `;
+                } else {
+                    // Regular user sees booking prompt
+                    historyContainer.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #7f8c8d;">
+                            <div style="font-size: 64px; margin-bottom: 15px;">📭</div>
+                            <h3 style="color: var(--primary); margin-bottom: 10px;">No booking history available</h3>
+                            <p style="font-size: 0.95rem; margin-bottom: 20px;">Make your first booking to see it here!</p>
+                            <button class="btn btn-primary" onclick="showPage('my-bookings')" style="padding: 12px 30px;">
+                                📅 Book Your First Slot
+                            </button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // Display simplified booking cards with only essential information
+            historyContainer.innerHTML = userBookings.map(booking => {
+                // Debug logging
+                console.log('Booking:', booking.booking_id, 'Status:', booking.status, 'Actual Exit:', booking.actual_exit_time);
+                
+                // Show actual times when available, otherwise show scheduled times
+                const entryDisplay = booking.actual_entry_time 
+                    ? new Date(booking.actual_entry_time).toLocaleString() 
+                    : (booking.entry_time ? new Date(booking.entry_time).toLocaleString() + ' (Scheduled)' : 'Pending');
+                
+                const exitDisplay = booking.actual_exit_time 
+                    ? new Date(booking.actual_exit_time).toLocaleString() 
+                    : (booking.status === 'completed' ? 'Completed (No exit scan recorded)' : 'Not exited yet');
+                
+                const statusBadge = booking.status === 'completed' 
+                    ? '<span style="background: #27ae60; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">✓ Completed</span>'
+                    : booking.status === 'in_progress'
+                    ? '<span style="background: #3498db; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">🚗 Active</span>'
+                    : '<span style="background: #f39c12; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">📅 Confirmed</span>';
+                
+                return `
+                <div class="booking-card">
+                    <p><strong>Booking ID:</strong> ${booking.booking_id} ${statusBadge}</p>
+                    <p><strong>Vehicle Number:</strong> ${booking.vehicle_number}</p>
+                    <p><strong>Entry Time:</strong> ${entryDisplay}</p>
+                    <p><strong>Exit Time:</strong> ${exitDisplay}</p>
+                    ${booking.status === 'completed' && booking.cost ? `<p><strong>Total Cost:</strong> ₹${booking.cost}</p>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        function resetHistoryFilters() {
+            document.getElementById('filter-user-email').value = '';
+            document.getElementById('filter-vehicle-number').value = '';
+            document.getElementById('filter-booking-status').value = '';
+            updateBookingHistory();
+        }
+
+        // Load My History Tab
+        async function loadMyHistory() {
+            if (!currentUser) {
+                console.log('No current user');
+                return;
+            }
+
+            console.log('Loading my history for user:', currentUser);
+            
+            try {
+                const result = await apiCall(`/user-bookings/${currentUser.userid}`);
+                console.log('API Response:', result);
+                
+                // Handle different response formats
+                let bookingsData = [];
+                if (Array.isArray(result)) {
+                    bookingsData = result;
+                } else if (result.bookings) {
+                    bookingsData = result.bookings;
+                } else if (result.success && result.data) {
+                    bookingsData = result.data;
+                }
+                
+                console.log('My bookings data:', bookingsData);
+                
+                // Calculate and display stats
+                const totalBookings = bookingsData.length;
+                const completedBookings = bookingsData.filter(b => b.status === 'completed').length;
+                const activeBookings = bookingsData.filter(b => b.status === 'in_progress').length;
+                
+                document.getElementById('my-total-bookings').textContent = totalBookings;
+                document.getElementById('my-completed-bookings').textContent = completedBookings;
+                document.getElementById('my-active-bookings').textContent = activeBookings;
+                
+                displayMyHistory(bookingsData);
+            } catch (error) {
+                console.error('Error loading my history:', error);
+                
+                document.getElementById('my-total-bookings').textContent = '0';
+                document.getElementById('my-completed-bookings').textContent = '0';
+                document.getElementById('my-active-bookings').textContent = '0';
+                
+                const historyContainer = document.getElementById('my-history-list');
+                historyContainer.innerHTML = `
+                    <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+                        <p style="color: #856404; margin-bottom: 10px;"><strong>⚠️ Unable to load booking history</strong></p>
+                        <p style="color: #856404; font-size: 0.9rem;">Please make sure the backend server is running at ${API_BASE}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayMyHistory(bookings) {
+            const historyContainer = document.getElementById('my-history-list');
+
+            if (!bookings || bookings.length === 0) {
+                historyContainer.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #7f8c8d;">
+                        <div style="font-size: 64px; margin-bottom: 15px;">📭</div>
+                        <h3 style="color: var(--primary); margin-bottom: 10px;">No booking history available</h3>
+                        <p style="font-size: 0.95rem; margin-bottom: 20px;">Make your first booking to see it here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Store bookings for filtering
+            window.myBookingsData = bookings;
+
+            // Display booking cards
+            historyContainer.innerHTML = bookings.map(booking => {
+                const entryDisplay = booking.actual_entry_time 
+                    ? new Date(booking.actual_entry_time).toLocaleString() 
+                    : (booking.entry_time ? new Date(booking.entry_time).toLocaleString() + ' (Scheduled)' : 'Pending');
+                
+                const exitDisplay = booking.actual_exit_time 
+                    ? new Date(booking.actual_exit_time).toLocaleString() 
+                    : (booking.status === 'completed' ? 'Completed (No exit scan)' : 'Not exited yet');
+                
+                const statusBadge = booking.status === 'completed' 
+                    ? '<span style="background: #27ae60; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">✓ Completed</span>'
+                    : booking.status === 'in_progress'
+                    ? '<span style="background: #3498db; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">🚗 Active</span>'
+                    : booking.status === 'cancelled'
+                    ? '<span style="background: #95a5a6; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">✖ Cancelled</span>'
+                    : '<span style="background: #f39c12; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 10px;">📅 Confirmed</span>';
+                
+                return `
+                <div class="booking-card" data-booking-id="${booking.booking_id}" data-vehicle-number="${booking.vehicle_number}">
+                    <p><strong>Booking ID:</strong> ${booking.booking_id} ${statusBadge}</p>
+                    <p><strong>Vehicle Number:</strong> ${booking.vehicle_number}</p>
+                    <p><strong>Entry Time:</strong> ${entryDisplay}</p>
+                    <p><strong>Exit Time:</strong> ${exitDisplay}</p>
+                    ${booking.status === 'completed' && booking.cost ? `<p><strong>Total Cost:</strong> ₹${booking.cost}</p>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        function filterMyBookings() {
+            const searchTerm = document.getElementById('search-my-bookings').value.toLowerCase();
+            
+            if (!window.myBookingsData) {
+                return;
+            }
+
+            if (!searchTerm) {
+                displayMyHistory(window.myBookingsData);
+                return;
+            }
+
+            const filtered = window.myBookingsData.filter(booking => 
+                booking.booking_id.toLowerCase().includes(searchTerm) ||
+                booking.vehicle_number.toLowerCase().includes(searchTerm)
+            );
+
+            displayMyHistory(filtered);
+        }
+
+        // Extend booking functions
+        async function updateExtendBooking() {
+            if (!currentUser) return;
+
+            try {
+                const userBookings = await apiCall(`/user-bookings/${currentUser.userid}`);
+                displayExtendOptions(userBookings);
+            } catch (error) {
+                console.error('Error loading extend bookings:', error);
+                document.getElementById('extend-booking-content').innerHTML = '<p>Error loading active bookings</p>';
+            }
+        }
+
+        function displayExtendOptions(userBookings) {
+            // Show bookings that are in_progress (entered but not exited)
+            // OR confirmed (booked but not entered yet) and still within valid time
+            const activeBookings = userBookings.filter(b => {
+                if (!b.exit_time) return false;
+                const exitTime = new Date(b.exit_time);
+                const now = new Date();
+                
+                // Can extend if:
+                // 1. In progress (entered but not exited)
+                // 2. Confirmed and exit time hasn't passed yet
+                return (b.status === 'in_progress' || 
+                       (b.status === 'confirmed' && exitTime > now));
+            });
+
+            const extendContainer = document.getElementById('extend-booking-content');
+
+            if (activeBookings.length > 0) {
+                extendContainer.innerHTML = activeBookings.map(booking => {
+                    const statusBadge = booking.status === 'in_progress' 
+                        ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Active</span>'
+                        : '<span style="background: #2196F3; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Confirmed</span>';
+                    
+                    return `
+                    <div class="booking-card active" style="margin-bottom: 1rem;">
+                        <p><strong>Booking ID:</strong> ${booking.booking_id} ${statusBadge}</p>
+                        <p><strong>Vehicle:</strong> ${booking.vehicle_number}</p>
+                        <p><strong>Current Exit:</strong> ${new Date(booking.exit_time).toLocaleString()}</p>
+                        <p><strong>Rate:</strong> ₹${booking.vehicle_type === 'bike' ? '20' : '30'}/hour</p>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>Hours to Extend:</label>
+                            <input type="number" id="extend-hours-${booking.booking_id}" min="1" max="24" placeholder="Enter hours" style="width: 100%;">
+                        </div>
+                        <p id="extend-cost-${booking.booking_id}" style="color: var(--primary); font-weight: bold; margin-top: 0.5rem;"></p>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="calculateExtension('${booking.booking_id}', '${booking.vehicle_type}')" style="flex: 1;">Calculate Cost</button>
+                            <button class="btn btn-success" onclick="extendBooking('${booking.booking_id}', '${booking.vehicle_type}')" style="flex: 1;">Pay & Extend</button>
+                        </div>
+                    </div>
+                `}).join('');
+            } else {
+                extendContainer.innerHTML = '<p>No active bookings to extend. Book a parking slot or scan at entry gate first.</p>';
+            }
+        }
+
+        function calculateExtension(bookingId, vehicleType) {
+            const hoursInput = document.getElementById(`extend-hours-${bookingId}`);
+            const hours = parseInt(hoursInput.value);
+            
+            if (!hours || hours < 1) {
+                showNotification('Please enter valid hours (minimum 1)', 'error');
+                return;
+            }
+
+            const rate = vehicleType === 'bike' ? 20 : 30;
+            const additionalCost = hours * rate;
+            
+            document.getElementById(`extend-cost-${bookingId}`).textContent = 
+                `Extension: ${hours} hour(s) × ₹${rate} = ₹${additionalCost}`;
+        }
+
+        async function extendBooking(bookingId, vehicleType) {
+            console.log('extendBooking called:', bookingId, vehicleType);
+            
+            const hoursInput = document.getElementById(`extend-hours-${bookingId}`);
+            const hours = parseInt(hoursInput.value);
+            
+            console.log('Hours:', hours);
+            
+            if (!hours || hours < 1) {
+                showNotification('Please enter hours first (minimum 1)', 'error');
+                return;
+            }
+
+            const rate = vehicleType === 'bike' ? 20 : 30;
+            const additionalCost = hours * rate;
+
+            console.log('Preparing extension payment:', { bookingId, hours, additionalCost });
+
+            // Store extension details for payment
+            const extensionPayment = {
+                booking_id: bookingId,
+                extend_hours: hours,
+                vehicle_type: vehicleType,
+                additional_cost: additionalCost,
+                user_id: currentUser.userid
+            };
+
+            localStorage.setItem('extensionPayment', JSON.stringify(extensionPayment));
+            console.log('Stored extensionPayment in localStorage');
+
+            // Show payment page with extension details
+            const paymentDetails = document.getElementById('payment-details');
+            if (!paymentDetails) {
+                console.error('payment-details element not found!');
+                showNotification('Error: Payment page not found', 'error');
+                return;
+            }
+            
+            paymentDetails.innerHTML = `
+                <div class="booking-card">
+                    <h3 style="color: var(--primary); margin-bottom: 15px;">🔄 Booking Extension Payment</h3>
+                    <p><strong>Booking ID:</strong> ${bookingId}</p>
+                    <p><strong>Vehicle Type:</strong> ${vehicleType === 'bike' ? '🏍️ Bike' : '🚗 Car'}</p>
+                    <p><strong>Extension Hours:</strong> ${hours} hours</p>
+                    <p><strong>Hourly Rate:</strong> ₹${rate}/hour</p>
+                    <p style="font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-top: 10px;"><strong>Additional Cost:</strong> ₹${additionalCost}</p>
+                </div>
+            `;
+
+            // Clear payment fields manually
+            document.getElementById('card-number').value = '';
+            document.getElementById('card-name').value = '';
+            document.getElementById('card-expiry').value = '';
+            document.getElementById('card-cvv').value = '';
+            document.getElementById('upi-id').value = '';
+            document.getElementById('payment-method').value = 'card';
+            togglePaymentFields();
+            
+            console.log('Calling showPage("payment")');
+            showPage('payment');
+            showNotification('Please complete payment to extend your booking', 'info');
+        }
+
+        // Utility functions
+        function showNotification(message, type) {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notif => notif.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Copy QR data to clipboard
+        function copyQRData() {
+            const textarea = document.getElementById('qr-data-display');
+            if (textarea && textarea.value) {
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                
+                // Modern clipboard API
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    showNotification('✅ QR data copied to clipboard!', 'success');
+                }).catch(err => {
+                    // Fallback for older browsers
+                    try {
+                        document.execCommand('copy');
+                        showNotification('✅ QR data copied to clipboard!', 'success');
+                    } catch (fallbackErr) {
+                        showNotification('❌ Failed to copy. Please copy manually.', 'error');
+                        console.error('Copy failed:', err, fallbackErr);
+                    }
+                });
+            }
+        }
+
+        // Download QR Code as image
+        function downloadQRCode() {
+            const qrImg = document.querySelector('.qr-placeholder img');
+            if (!qrImg) {
+                showNotification('No QR code available to download', 'error');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = qrImg.src;
+            link.download = `parking-qr-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('✅ QR Code downloaded!', 'success');
+        }
+
+        // Download Receipt/Invoice
+        function downloadReceipt() {
+            const bookingDetails = document.getElementById('qr-booking-details').innerHTML;
+            
+            const receiptHTML = `
+                <html>
+                <head>
+                    <title>Parking Receipt</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: 0 auto; }
+                        h1 { color: #2196F3; text-align: center; }
+                        .receipt { border: 2px solid #2196F3; padding: 20px; border-radius: 10px; }
+                        .details { background: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 5px; }
+                        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 0.9rem; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🅿️ University Parking System</h1>
+                    <div class="receipt">
+                        <h2>Payment Receipt</h2>
+                        <div class="details">${bookingDetails}</div>
+                        <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                        <p><strong>Status:</strong> Paid ✅</p>
+                    </div>
+                    <div class="footer">
+                        <p>Thank you for using our parking system!</p>
+                        <p>Please save this receipt for your records.</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([receiptHTML], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `parking-receipt-${Date.now()}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showNotification('✅ Receipt downloaded!', 'success');
+        }
+
+        // Filter bookings in real-time
+        function filterBookings() {
+            const searchText = document.getElementById('search-bookings')?.value.toLowerCase() || '';
+            const bookingCards = document.querySelectorAll('#history-list .booking-card');
+            
+            bookingCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Export bookings to CSV (Admin only)
+        async function exportBookingsToCSV() {
+            try {
+                // Get current filters
+                const emailFilter = document.getElementById('filter-user-email')?.value || '';
+                const vehicleFilter = document.getElementById('filter-vehicle-number')?.value || '';
+                const statusFilter = document.getElementById('filter-booking-status')?.value || '';
+                
+                // Build query string
+                const params = new URLSearchParams();
+                if (emailFilter) params.append('email', emailFilter);
+                if (vehicleFilter) params.append('vehicle_number', vehicleFilter);
+                if (statusFilter) params.append('status', statusFilter);
+                
+                const queryString = params.toString();
+                const result = await apiCall(`/all-bookings${queryString ? '?' + queryString : ''}`);
+                
+                if (!result.bookings || result.bookings.length === 0) {
+                    showNotification('No bookings to export', 'info');
+                    return;
+                }
+                
+                // Create CSV content
+                const headers = ['Booking ID', 'Vehicle Number', 'Vehicle Type', 'User Email', 'Entry Time', 'Exit Time', 'Status', 'Cost'];
+                let csvContent = headers.join(',') + '\\n';
+                
+                result.bookings.forEach(booking => {
+                    const row = [
+                        booking.booking_id || '',
+                        booking.vehicle_number || '',
+                        booking.vehicle_type || '',
+                        booking.user_email || '',
+                        booking.actual_entry_time || booking.entry_time || '',
+                        booking.actual_exit_time || booking.exit_time || '',
+                        booking.status || '',
+                        booking.cost || ''
+                    ];
+                    csvContent += row.map(field => `"${field}"`).join(',') + '\\n';
+                });
+                
+                // Download CSV
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `parking-bookings-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                
+                showNotification('✅ Bookings exported successfully!', 'success');
+            } catch (error) {
+                showNotification('Error exporting bookings: ' + error.message, 'error');
+            }
+        }
+
+        // Send admin notification for new booking
+        async function sendAdminNotification(data) {
+            try {
+                await apiCall('/admin-notification', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                console.log('Admin notified successfully:', data);
+            } catch (error) {
+                console.error('Failed to notify admin:', error);
+                // Don't show error to user - notification is background task
+            }
+        }
+
+        // Scanner functionality
+        let scannerStream = null;
+        let scannerMode = 'entry';
+        let scanning = false;
+
+        async function checkScannerServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const statusEl = document.getElementById('scannerServerStatus');
+                if (response.ok) {
+                    statusEl.innerHTML = '<span class="status-indicator online"></span> Server Connected';
+                } else {
+                    statusEl.innerHTML = '<span class="status-indicator offline"></span> Server Offline';
+                }
+            } catch (error) {
+                document.getElementById('scannerServerStatus').innerHTML = '<span class="status-indicator offline"></span> Server Offline';
+            }
+        }
+
+        function switchScanMode(mode) {
+            scannerMode = mode;
+            
+            // Update current mode display banner
+            const modeDisplay = document.getElementById('currentModeDisplay');
+            const entryBtn = document.getElementById('entryModeBtn');
+            const exitBtn = document.getElementById('exitModeBtn');
+            
+            if (mode === 'entry') {
+                modeDisplay.textContent = '📍 Current Mode: ENTRY';
+                modeDisplay.style.background = '#27ae60';
+                entryBtn.classList.add('active');
+                entryBtn.style.background = '#27ae60';
+                entryBtn.style.color = '#ffffff';
+                entryBtn.style.border = 'none';
+                exitBtn.classList.remove('active');
+                exitBtn.style.background = '#95a5a6';
+                exitBtn.style.color = '#ffffff';
+            } else {
+                modeDisplay.textContent = '📍 Current Mode: EXIT';
+                modeDisplay.style.background = '#f39c12';
+                exitBtn.classList.add('active');
+                exitBtn.style.background = '#f39c12';
+                exitBtn.style.color = '#ffffff';
+                exitBtn.style.border = 'none';
+                entryBtn.classList.remove('active');
+                entryBtn.style.background = '#95a5a6';
+                entryBtn.style.color = '#ffffff';
+            }
+        }
+
+        async function startScannerCamera() {
+            try {
+                scannerStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                const video = document.getElementById('scannerVideo');
+                video.srcObject = scannerStream;
+                video.play();
+                
+                video.style.display = 'block';
+                document.getElementById('cameraOff').style.display = 'none';
+                document.getElementById('scanOverlay').style.display = 'block';
+                document.getElementById('startCameraBtn').style.display = 'none';
+                document.getElementById('stopCameraBtn').style.display = 'block';
+                
+                scanning = true;
+                scanQRCode();
+            } catch (error) {
+                showNotification('Camera access denied: ' + error.message, 'error');
+            }
+        }
+
+        function stopScannerCamera() {
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(track => track.stop());
+                scannerStream = null;
+            }
+            
+            scanning = false;
+            document.getElementById('scannerVideo').style.display = 'none';
+            document.getElementById('cameraOff').style.display = 'flex';
+            document.getElementById('scanOverlay').style.display = 'none';
+            document.getElementById('startCameraBtn').style.display = 'block';
+            document.getElementById('stopCameraBtn').style.display = 'none';
+            document.getElementById('scanResult').style.display = 'none';
+        }
+
+        async function scanQRCode() {
+            if (!scanning) return;
+
+            const video = document.getElementById('scannerVideo');
+            const canvas = document.getElementById('scannerCanvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Scan for QR code using jsQR library
+            if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    // QR code detected!
+                    console.log("QR Code detected:", code.data);
+                    processScan(code.data);
+                    return; // Stop scanning after successful detection
+                }
+            }
+            
+            // Continue scanning faster - reduced from 300ms to 100ms
+            setTimeout(() => scanQRCode(), 100);
+        }
+
+        function testManualQR() {
+            const qrInput = document.getElementById('manualQRInput');
+            const qrData = qrInput.value.trim();
+            
+            if (!qrData) {
+                showNotification('Please enter QR code data', 'error');
+                return;
+            }
+            
+            console.log('Manual QR test:', qrData);
+            processScan(qrData);
+            qrInput.value = ''; // Clear input
+        }
+
+        async function processScan(qrData) {
+            scanning = false;
+            
+            try {
+                const endpoint = scannerMode === 'entry' ? '/qr/scan-entry' : '/qr/scan-exit';
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qr_data: qrData })
+                });
+                
+                const result = await response.json();
+                displayScanResult(result);
+                
+                setTimeout(() => {
+                    scanning = true;
+                }, 3000);
+            } catch (error) {
+                showNotification('Scan failed: ' + error.message, 'error');
+                scanning = true;
+            }
+        }
+
+        function displayScanResult(result) {
+            const resultDiv = document.getElementById('scanResult');
+            const contentDiv = document.getElementById('scanResultContent');
+            
+            resultDiv.className = 'card';
+            resultDiv.style.display = 'block';
+            
+            if (result.success) {
+                resultDiv.style.borderLeft = '4px solid var(--success)';
+                resultDiv.querySelector('h3').textContent = '✅ ' + result.message;
+                
+                let content = `<p><strong>Vehicle:</strong> ${result.vehicle_number || 'N/A'}</p>`;
+                
+                if (result.booking_id) {
+                    content += `<p><strong>Booking ID:</strong> ${result.booking_id || 'N/A'}</p>`;
+                }
+                
+                if (result.entry_time) {
+                    content += `<p><strong>Entry Time:</strong> ${new Date(result.entry_time).toLocaleString()}</p>`;
+                }
+                
+                if (result.exit_time) {
+                    content += `<p><strong>Exit Time:</strong> ${new Date(result.exit_time).toLocaleString()}</p>`;
+                }
+                
+                if (result.total_cost) {
+                    content += `<p><strong>Total Cost:</strong> ₹${result.total_cost.toFixed(2)}</p>`;
+                }
+                
+                if (result.overstay) {
+                    content += `<p style="color: var(--accent);"><strong>⚠️ Overstay:</strong> ${result.overstay_hours} hours</p>`;
+                    content += `<p style="color: var(--accent);"><strong>Additional Charge:</strong> ₹${result.additional_charge.toFixed(2)}</p>`;
+                }
+                
+                contentDiv.innerHTML = content;
+            } else {
+                resultDiv.style.borderLeft = '4px solid var(--accent)';
+                resultDiv.querySelector('h3').textContent = '❌ ' + result.message;
+                contentDiv.innerHTML = '';
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</body>
+
+</html>
