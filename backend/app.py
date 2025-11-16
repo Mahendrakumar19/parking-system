@@ -1234,8 +1234,17 @@ def serve_frontend():
 
 @app.route('/<path:path>')
 def serve_static(path):
+    # Don't catch API routes - let them be handled by API endpoints
+    if path.startswith('api/'):
+        from flask import abort
+        abort(404)
+    
     frontend_dir = os.path.join(os.path.dirname(BASE_DIR), 'frontend')
-    return send_from_directory(frontend_dir, path)
+    try:
+        return send_from_directory(frontend_dir, path)
+    except:
+        # If file not found, serve index.html for client-side routing
+        return send_from_directory(frontend_dir, 'index.html')
 
 
 # Initialize database on module load
