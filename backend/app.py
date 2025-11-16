@@ -16,6 +16,12 @@ import json
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Database path configuration
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'database', 'parking.db')
+
+# Ensure database directory exists
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -32,7 +38,7 @@ exit_scanner = DeviceScanner('EXIT-001', 'Main Gate - Exit', 'exit')
 
 
 def init_db():
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # Create users table
@@ -177,7 +183,7 @@ def register():
             'errors': errors
         }), 400
 
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
@@ -226,7 +232,7 @@ def register():
 def login():
     data = request.json
 
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # Login with email and password
@@ -273,7 +279,7 @@ def admin_notification():
     try:
         data = request.json
         
-        conn = sqlite3.connect('backend/database/parking.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Create a readable message
@@ -346,7 +352,7 @@ def book_slot():
                 'message': 'Invalid car number plate format. Expected format: GJ 03 AY 1097 or GJ03AY1097'
             }), 400
 
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
@@ -436,7 +442,7 @@ def extend_booking():
     """Extend an existing booking by adding more hours"""
     data = request.json
     
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -498,7 +504,7 @@ def extend_booking():
 
 @app.route('/api/user-bookings/<user_id>')
 def get_user_bookings(user_id):
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
@@ -545,7 +551,7 @@ def cancel_booking(booking_id):
         data = request.json
         user_id = data.get('user_id')
         
-        conn = sqlite3.connect('backend/database/parking.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Check if booking exists and belongs to user
@@ -602,7 +608,7 @@ def cancel_booking(booking_id):
 @app.route('/api/all-bookings')
 def get_all_bookings():
     """Get all bookings with optional filters - Admin only"""
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
@@ -711,7 +717,7 @@ def validate_payment():
 
 @app.route('/api/dashboard-stats')
 def dashboard_stats():
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # Count active bookings by vehicle type to show "available" slots
@@ -753,7 +759,7 @@ def scan_entry():
             'message': 'No QR data provided'
         }), 400
     
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -840,7 +846,7 @@ def scan_exit():
             'message': 'No QR data provided'
         }), 400
     
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -958,7 +964,7 @@ def scan_exit():
         conn.close()
     
     # Store scan record in database
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -998,7 +1004,7 @@ def scan_exit():
 @app.route('/api/qr/get-booking-qr/<booking_id>')
 def get_booking_qr(booking_id):
     """Get QR code for a specific booking"""
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -1074,7 +1080,7 @@ def get_scan_history(device_type):
 @app.route('/api/scan-history', methods=['GET'])
 def get_all_scan_history():
     """Get complete scan history from database"""
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
@@ -1161,7 +1167,7 @@ def get_user_scan_history():
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Not logged in'}), 401
     
-    conn = sqlite3.connect('backend/database/parking.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     try:
