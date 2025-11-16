@@ -2420,10 +2420,13 @@
 
                 if (code) {
                     // QR code detected!
-                    console.log("QR Code detected:", code.data);
+                    console.log("✅ QR Code detected:", code.data);
+                    scanning = false; // Stop scanning
                     processScan(code.data);
                     return; // Stop scanning after successful detection
                 }
+            } else {
+                console.error("❌ jsQR library not loaded!");
             }
             
             // Continue scanning faster - reduced from 300ms to 100ms
