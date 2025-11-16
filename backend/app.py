@@ -1228,22 +1228,20 @@ def get_user_scan_history():
 
 @app.route('/')
 def serve_frontend():
-    return send_from_directory('../frontend', 'index.html')
+    frontend_dir = os.path.join(os.path.dirname(BASE_DIR), 'frontend')
+    return send_from_directory(frontend_dir, 'index.html')
 
 
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('../frontend', path)
+    frontend_dir = os.path.join(os.path.dirname(BASE_DIR), 'frontend')
+    return send_from_directory(frontend_dir, path)
 
 
 # Initialize database on module load
-os.makedirs('backend/database', exist_ok=True)
 init_db()
 
 if __name__ == '__main__':
-    # Create database directory if it doesn't exist
-    os.makedirs('backend/database', exist_ok=True)
-
     # Initialize database
     init_db()
 
