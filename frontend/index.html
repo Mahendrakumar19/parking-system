@@ -2406,22 +2406,32 @@
             const canvas = document.getElementById('scannerCanvas');
             const context = canvas.getContext('2d');
 
+            // Ensure video is playing and has dimensions
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+                setTimeout(() => scanQRCode(), 100);
+                return;
+            }
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             
-            // Scan for QR code using jsQR library
+            // Scan for QR code using jsQR library with all inversion attempts
             if (typeof jsQR !== 'undefined') {
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
+                    inversionAttempts: "attemptBoth", // Try both normal and inverted
                 });
 
                 if (code) {
                     // QR code detected!
                     console.log("✅ QR Code detected:", code.data);
                     scanning = false; // Stop scanning
+                    
+                    // Visual feedback
+                    showNotification('QR Code detected! Processing...', 'info');
+                    
                     processScan(code.data);
                     return; // Stop scanning after successful detection
                 }
@@ -2429,7 +2439,7 @@
                 console.error("❌ jsQR library not loaded!");
             }
             
-            // Continue scanning faster - reduced from 300ms to 100ms
+            // Continue scanning - fast interval
             setTimeout(() => scanQRCode(), 100);
         }
 
